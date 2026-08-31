@@ -24,12 +24,12 @@ final class AppState: ObservableObject {
     }
     @Published var errorMessage: String?
 
-    private let hardware: AudioHardwareService
+    private let hardware: any AudioHardwareProviding
     private let defaults: UserDefaults
     private var refreshTask: Task<Void, Never>?
     private var noticeTask: Task<Void, Never>?
 
-    init(hardware: AudioHardwareService = AudioHardwareService(), defaults: UserDefaults = .standard) {
+    init(hardware: any AudioHardwareProviding = AudioHardwareService(), defaults: UserDefaults = .standard) {
         self.hardware = hardware
         self.defaults = defaults
         priorities = Self.loadPriorities(from: defaults)

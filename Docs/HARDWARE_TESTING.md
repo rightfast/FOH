@@ -1,59 +1,41 @@
 # Hardware testing
 
-FOH's hardware layer should be verified with real connection sequences rather
-than device mocks alone. Diagnostic exports intentionally omit raw names, UIDs,
-Core Audio object IDs, and event messages.
+FOH's automation policy is covered by deterministic tests and a smaller live
+hardware matrix. Built-in devices should always be restored before finishing a
+test session.
 
-## Device matrix
+## Automated topology coverage
 
-- Built-in microphone and speakers
-- USB microphone
-- XLR audio interface
-- Wired headphones
-- Bluetooth headphones or earbuds
-- HDMI or DisplayPort audio
-- Virtual and aggregate devices
+`FOHTests/AppStateAutomationTests.swift` verifies:
 
-## Connection sequences
+- Disconnecting the active device selects FOH's highest-priority available
+  fallback, even when macOS has already assigned a different fallback.
+- Reconnecting a higher-priority device restores it when restoration is on.
+- Reconnecting a higher-priority device leaves the current device alone when
+  restoration is off.
+- A manual selection is not overridden when connection topology has not
+  changed.
+- An input disconnect does not change the selected output.
 
-1. Launch FOH with the device already connected.
-2. Connect the device while FOH is running.
-3. Disconnect the active default device.
-4. Reconnect a previously disconnected device.
-5. Change the default through macOS Sound settings.
-6. Sleep and wake the Mac with the device connected.
-7. Dock and undock the Mac.
-8. Connect and disconnect Bluetooth during an active call.
-9. Launch and quit Zoom while it is configured to use the system default.
+Run the full suite with:
 
-## What to verify
+```sh
+xcodegen generate
+xcodebuild -project FOH.xcodeproj -scheme FOH -destination 'platform=macOS' test
+```
 
-- Stable UID across reconnection
-- Correct input/output direction and channel count
-- Transport classification
-- Nominal sample rate
-- Default input and output tracking
-- Writable versus read-only volume, gain, and mute
-- Event ordering and duplicate suppression
-- Failures are visible without interrupting unrelated audio
-- Export contains capability data but no raw device identity
+## Live matrix
 
-## Verified baseline
+| Scenario | Result | Notes |
+| --- | --- | --- |
+| Select virtual output | Pass | Motiv Mix became the default output and system output. |
+| Restore built-in output | Pass | MacBook Pro Speakers became both defaults again. |
+| Select virtual input | Pass | Motiv Mix became the default input. |
+| Restore built-in input | Pass | MacBook Pro Microphone became the default input again. |
+| USB/XLR disconnect and reconnect | Pending | Run on the secondary test Mac with the physical interface. |
+| Bluetooth disconnect and reconnect | Pending | Run with AirPods or another Bluetooth headset. |
+| HDMI disconnect and reconnect | Pending | Run only when changing the KVM display path is convenient. |
 
-### 2026-08-30 — Apple Silicon, macOS 26.5.2
-
-- Switched the default output from the built-in endpoint to an HDMI endpoint
-  through FOH.
-- Independently confirmed the HDMI endpoint through macOS `system_profiler`.
-- Restored the built-in endpoint through FOH and independently confirmed it.
-- FOH recorded one selection and one observed-default-change event in each
-  direction, with no duplicate or error events.
-- The input endpoint remained unchanged throughout the output round trip.
-
-## Deferred device validation
-
-USB microphones, XLR interfaces, and Bluetooth/AirPods call-profile behavior
-will be tested on the second Mac once FOH has a signed, one-step install build.
-Until then, live input activity is intentionally opt-in and only runs while an
-FOH window or menu is visible, so opening FOH cannot silently hold a Bluetooth
-microphone stream in the background.
+For each physical test, place the removable device first, enable **Automatic
+fallback**, disconnect it, confirm the next available device and History entry,
+then reconnect it and confirm restoration and the second History entry.

@@ -2,7 +2,15 @@
 import AudioToolbox
 import Foundation
 
-final class AudioHardwareService: @unchecked Sendable {
+protocol AudioHardwareProviding: AnyObject, Sendable {
+    var onChange: AudioHardwareService.ChangeHandler? { get set }
+    func devices() throws -> [AudioDevice]
+    func defaultDeviceID(for direction: AudioDirection) throws -> AudioObjectID
+    func setDefaultDevice(_ device: AudioDevice) throws
+    func startObserving()
+}
+
+final class AudioHardwareService: AudioHardwareProviding, @unchecked Sendable {
     typealias ChangeHandler = @Sendable () -> Void
 
     private let systemObject = AudioObjectID(kAudioObjectSystemObject)
