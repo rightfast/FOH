@@ -2,7 +2,7 @@
 import Foundation
 
 @MainActor
-final class MicrophoneMonitor: ObservableObject {
+final class MicrophoneMonitor: ObservableObject, @unchecked Sendable {
     enum Authorization: Equatable {
         case notDetermined
         case denied
