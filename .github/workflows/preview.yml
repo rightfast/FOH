@@ -6,7 +6,7 @@ on:
       version:
         description: Test build version tag
         required: true
-        default: v0.2.0-rc.3
+        default: v0.2.0-rc.4
 
 permissions:
   contents: write
@@ -55,13 +55,12 @@ jobs:
             gh release create "$RELEASE_TAG" \
               --target "$GITHUB_SHA" \
               --title "$release_title" \
-              --latest \
-              --notes "Release candidate for hands-on testing. Introduces the Signal Desk design system across onboarding, the menu bar, Stage, Devices, Scenes, Automations, History, Diagnostics, Settings, and Call Check. The new route-map Stage makes active audio paths easier to understand, uses semantic status colors, and replaces the previous card-heavy interface with a calmer native Mac layout. Universal for Apple Silicon and Intel. This build is not Developer ID signed or notarized; follow the README first-launch instructions."
+              --prerelease \
+              --notes "Release candidate for hands-on testing. Refines the Signal Desk interface with a cleaner onboarding wordmark, consistently aligned settings controls, a precise Scene form grid, clearer Scene actions, and a Finder-safe DMG layout. Universal for Apple Silicon and Intel. This build is not Developer ID signed or notarized; follow the README first-launch instructions."
           else
             gh release edit "$RELEASE_TAG" \
               --title "$release_title" \
-              --prerelease=false \
-              --latest
+              --prerelease
           fi
           gh release upload "$RELEASE_TAG" \
             build/release/FOH.dmg \
