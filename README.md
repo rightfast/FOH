@@ -8,7 +8,61 @@ The first milestone is a sandboxed feasibility build that discovers Core Audio
 devices, reports their capabilities, observes hardware/default-device changes,
 and changes the system defaults.
 
-## Requirements
+## Download the preview
+
+**[Download FOH for Mac](https://github.com/rightfast/FOH/releases/download/preview/FOH.dmg)**
+
+The preview DMG is a universal build for both Apple Silicon and Intel Macs, so
+there is no device-specific download to choose. Open the DMG and drag FOH into
+Applications.
+
+The preview is not yet Developer ID signed or notarized. The first time you open
+FOH, macOS will block it because Apple cannot verify the developer:
+
+1. Try to open FOH once, then dismiss the warning.
+2. Open **System Settings › Privacy & Security**.
+3. Scroll to **Security** and click **Open Anyway** for FOH.
+4. Confirm **Open**. macOS remembers that choice for this build.
+
+This is Apple's standard override for an app from an unknown developer; it does
+not require a Terminal command or disabling Gatekeeper globally. Preview builds
+also include a published `FOH.dmg.sha256` checksum on the release page.
+
+## Install from source
+
+Until FOH has a paid Apple Developer membership and a notarized public release,
+the cleanest way to install it is to build it directly on the Mac where you will
+use it. A local build does not require disabling Gatekeeper or removing quarantine
+attributes.
+
+1. Install [Xcode from the Mac App Store](https://apps.apple.com/app/xcode/id497799835),
+   open it once, and allow it to finish installing components.
+2. Open Terminal and run:
+
+```sh
+git clone https://github.com/rightfast/FOH.git
+cd FOH
+./Scripts/install-from-source.sh
+```
+
+The script checks the Mac and Xcode version, builds a Release configuration with
+a local ad-hoc signature, verifies the app, installs it in `/Applications`, and
+opens FOH. If `/Applications` is not writable, it uses `~/Applications` and tells
+you where it installed the app.
+
+To update later:
+
+```sh
+cd FOH
+git pull --ff-only
+./Scripts/install-from-source.sh
+```
+
+Quit FOH before updating it. The locally built app will still request normal macOS
+permissions for microphone activity and browser automation when you enable those
+features. Those prompts are part of the real app behavior.
+
+## Development requirements
 
 - macOS 14 or newer
 - Xcode 26 or newer
@@ -21,7 +75,7 @@ xcodegen generate
 xcodebuild -project FOH.xcodeproj -scheme FOH -configuration Debug build
 ```
 
-## Install
+## Public distribution
 
 FOH will ship as a signed and notarized DMG with a drag-to-Applications window.
 The same release artifact is prepared for a Right Fast Studio Homebrew tap and

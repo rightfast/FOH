@@ -18,7 +18,8 @@ usage() {
   echo "  TEAM_ID          Apple Developer team ID"
   echo "  NOTARY_PROFILE   notarytool keychain profile name"
   echo ""
-  echo "Use --adhoc only for local packaging tests. It is not distributable."
+  echo "Use --adhoc only for local builds or informed preview testers."
+  echo "It is not Developer ID signed or notarized."
 }
 
 while [[ $# -gt 0 ]]; do
@@ -119,5 +120,6 @@ echo ""
 echo "Built: $DMG_PATH"
 echo "SHA-256: $DMG_PATH.sha256"
 if [[ "$ADHOC" == true ]]; then
-  echo "This ad-hoc build is for local packaging inspection only."
+  echo "This ad-hoc build is not Developer ID signed or notarized."
+  echo "Only share it with informed preview testers."
 fi

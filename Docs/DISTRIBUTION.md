@@ -4,10 +4,11 @@ FOH's primary direct-download artifact is a Developer ID-signed and Apple-
 notarized disk image. The disk image presents FOH beside an Applications folder
 shortcut so installation is one drag.
 
-## Local packaging smoke test
+## Trusted preview build
 
 This validates the universal Release archive, DMG artwork, icon placement, and
-Applications link without producing something safe to share:
+Applications link. It may be shared with informed testers, but it is not signed
+with a Developer ID or notarized by Apple:
 
 ```sh
 brew install xcodegen
@@ -15,8 +16,16 @@ Scripts/render-dmg-assets.sh
 Scripts/build-release.sh --adhoc --skip-notarization
 ```
 
-The artifact is written to `build/release/FOH.dmg`. Ad-hoc builds should never
-be attached to a GitHub release.
+The artifact is written to `build/release/FOH.dmg`. The manually triggered
+`preview.yml` workflow publishes the same ad-hoc artifact to a rolling GitHub
+pre-release. Testers must use macOS's per-app **Open Anyway** override on first
+launch. Do not present this artifact as a verified public release.
+
+The stable preview download is:
+
+```text
+https://github.com/rightfast/FOH/releases/download/preview/FOH.dmg
+```
 
 ## Production build
 
