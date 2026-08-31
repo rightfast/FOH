@@ -1,14 +1,19 @@
 # FOH
 
 FOH keeps your Mac's microphone and audio output pointed at the right devices.
-It runs in the menu bar and has a full app for setup.
+It lives in the menu bar, with a full Mac app when you want to change the setup.
 
-This is for a familiar problem. You join a call, your USB microphone is missing,
-and macOS quietly chose the MacBook microphone. Or your AirPods disconnected and
-Zoom kept the wrong output. FOH watches the devices that are connected and applies
-the rules you choose.
+<p align="center">
+  <img src="Docs/Images/signal-desk.png" alt="FOH Signal Desk showing the active microphone and listening device" width="900">
+</p>
 
-FOH is open source and free. It is currently a release candidate for hands-on testing.
+You join a call. Your USB microphone is missing, macOS quietly chose the MacBook
+microphone, and Zoom is still pointing somewhere else. FOH watches which devices
+are connected and follows the rules you set. If something changes, it tells you
+what it chose and why.
+
+FOH is free and open source. The current build is a release candidate for people
+who want to test it on their own audio setup.
 
 ## Download
 
@@ -35,7 +40,27 @@ security policy for other apps. Apple documents this process in
 
 The release also includes `FOH.dmg.sha256` so you can verify the download.
 
-## What FOH does
+## One setup for every desk
+
+Put microphones and listening devices in priority order. Save a pair as a Scene.
+Tell FOH what Zoom, Slack, Teams, Discord, Webex, FaceTime, or another Mac app
+should use. When a preferred device disappears, FOH can move to the next one and
+restore the original when it comes back.
+
+| Scenes | App rules |
+| --- | --- |
+| <img src="Docs/Images/scenes.png" alt="FOH Scenes with microphone and listening device choices" width="440"> | <img src="Docs/Images/automations.png" alt="FOH Automations with installed and unavailable communication apps" width="440"> |
+| Save a microphone and output as one choice. | Choose devices for installed apps or add your own. |
+
+Before a call, Call Check walks through the microphone, output, and active rules.
+The optional waveform confirms that the selected microphone is receiving sound.
+FOH calculates that level on your Mac and never records the audio.
+
+<p align="center">
+  <img src="Docs/Images/call-check.png" alt="FOH Call Check testing microphone activity" width="900">
+</p>
+
+## What it can do
 
 - Lists audio inputs and outputs connected to the Mac.
 - Lets you order devices by preference.
