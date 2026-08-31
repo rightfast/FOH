@@ -212,6 +212,9 @@ extension DiagnosticEventKind {
         case .automationChanged: "switch.2"
         case .automaticFallback: "arrow.triangle.branch"
         case .preferredRestored: "arrow.uturn.backward.circle"
+        case .applicationDetected: "app.badge"
+        case .applicationRuleChanged: "slider.horizontal.3"
+        case .applicationRuleApplied: "bolt.circle"
         case .error: "exclamationmark.triangle"
         }
     }
@@ -219,7 +222,7 @@ extension DiagnosticEventKind {
     var tint: Color {
         switch self {
         case .error: .red
-        case .deviceConnected, .preferredRestored: .green
+        case .deviceConnected, .preferredRestored, .applicationRuleApplied: .green
         case .deviceDisconnected: .orange
         case .automaticFallback: .purple
         default: .accentColor

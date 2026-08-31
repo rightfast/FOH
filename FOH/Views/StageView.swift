@@ -42,7 +42,10 @@ struct StageView: View {
             case .diagnostics:
                 DiagnosticsView()
                     .environmentObject(appState)
-            case .scenes, .automations:
+            case .automations:
+                AutomationsView()
+                    .environmentObject(appState)
+            case .scenes:
                 let section = selection ?? .stage
                 comingSoon(section.title, icon: section.systemImage)
             }

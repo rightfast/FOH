@@ -109,6 +109,33 @@ final class AppStateAutomationTests: XCTestCase {
         XCTAssertEqual(state.defaultOutput?.id, output.id)
     }
 
+    func testZoomLaunchAppliesConfiguredInputAndOutput() async {
+        let input = device(id: 60, uid: "zoom-input", name: "Desk Microphone", direction: .input)
+        let output = device(id: 61, uid: "zoom-output", name: "Desk Headphones", direction: .output)
+        let otherInput = device(id: 62, uid: "other-input", name: "Mac Microphone", direction: .input)
+        let otherOutput = device(id: 63, uid: "other-output", name: "Mac Speakers", direction: .output)
+        let hardware = FakeAudioHardware(
+            devices: [input, otherInput, output, otherOutput],
+            inputID: otherInput.objectID,
+            outputID: otherOutput.objectID
+        )
+        let applications = FakeApplicationMonitor()
+        let state = AppState(hardware: hardware, defaults: defaults, applicationMonitor: applications)
+        state.setZoomDevice(input.id, for: .input)
+        state.setZoomDevice(output.id, for: .output)
+        state.setZoomRuleEnabled(true)
+
+        applications.launch("us.zoom.xos")
+        await Task.yield()
+        await Task.yield()
+
+        XCTAssertTrue(state.isZoomRunning)
+        XCTAssertEqual(hardware.selections.map(\.id), [input.id, output.id])
+        XCTAssertEqual(state.defaultInput?.id, input.id)
+        XCTAssertEqual(state.defaultOutput?.id, output.id)
+        XCTAssertEqual(state.events.last?.kind, .applicationRuleApplied)
+    }
+
     private func device(id: AudioObjectID, uid: String, name: String, direction: AudioDirection) -> AudioDevice {
         AudioDevice(
             objectID: id,
@@ -158,4 +185,21 @@ private final class FakeAudioHardware: AudioHardwareProviding, @unchecked Sendab
     }
 
     func startObserving() {}
+}
+
+private final class FakeApplicationMonitor: ApplicationMonitoring, @unchecked Sendable {
+    var onLaunch: (@Sendable (String) -> Void)?
+    var onTerminate: (@Sendable (String) -> Void)?
+    private var running: Set<String> = []
+
+    func startObserving() {}
+
+    func isRunning(bundleIdentifier: String) -> Bool {
+        running.contains(bundleIdentifier)
+    }
+
+    func launch(_ bundleIdentifier: String) {
+        running.insert(bundleIdentifier)
+        onLaunch?(bundleIdentifier)
+    }
 }

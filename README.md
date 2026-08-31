@@ -36,4 +36,6 @@ FOH is visible. Audio is never recorded, retained, or transmitted.
 
 The current build supports persistent input and output priority lists,
 opt-in automatic fallback, optional restoration when a preferred device
-reconnects, and a local session activity history explaining every change.
+reconnects, and a local session activity history explaining every change. A
+Zoom Workplace rule can apply preferred or highest-priority available devices
+when Zoom launches; Zoom should be configured to use “Same as System.”
