@@ -1,82 +1,40 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct AutomationsView: View {
     @EnvironmentObject private var appState: AppState
+    @State private var isAddingApplication = false
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Automations")
-                        .font(.largeTitle.bold())
-                    Text("Put the right devices onstage when a work app opens.")
-                        .foregroundStyle(.secondary)
-                }
-
-                VStack(alignment: .leading, spacing: 20) {
-                    HStack(spacing: 14) {
-                        Image(systemName: "video.fill")
-                            .font(.title2)
-                            .foregroundStyle(.blue)
-                            .frame(width: 42, height: 42)
-                            .background(Color.blue.opacity(0.12), in: RoundedRectangle(cornerRadius: 11))
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text("Zoom Workplace")
-                                .font(.title2.bold())
-                            Text(appState.isZoomRunning ? "●  Running now" : "○  Not running")
-                                .font(.caption)
-                                .foregroundStyle(appState.isZoomRunning ? Color.green : Color.secondary)
-                        }
-                        Spacer()
-                        Toggle("Enable Zoom automation", isOn: enabled)
-                            .labelsHidden()
-                    }
-
-                    Divider()
-
-                    Grid(alignment: .leading, horizontalSpacing: 18, verticalSpacing: 16) {
-                        GridRow {
-                            Label("Microphone", systemImage: "mic.fill")
-                            Picker("Microphone", selection: inputSelection) {
-                                Text("Highest-priority available").tag("")
-                                ForEach(appState.priorities(for: .input)) { priority in
-                                    Text(priority.name).tag(priority.id)
-                                }
-                            }
-                            .labelsHidden()
-                        }
-                        GridRow {
-                            Label("Listening", systemImage: "headphones")
-                            Picker("Listening", selection: outputSelection) {
-                                Text("Highest-priority available").tag("")
-                                ForEach(appState.priorities(for: .output)) { priority in
-                                    Text(priority.name).tag(priority.id)
-                                }
-                            }
-                            .labelsHidden()
-                        }
-                    }
-                    .disabled(!appState.zoomRule.isEnabled)
-
-                    HStack {
-                        Text("Runs when Zoom launches")
-                            .font(.caption)
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Automations")
+                            .font(.largeTitle.bold())
+                        Text("Put the right devices onstage when a work app opens.")
                             .foregroundStyle(.secondary)
-                        Spacer()
-                        Button("Test rule now") { appState.testZoomRule() }
-                            .disabled(!appState.zoomRule.isEnabled)
+                    }
+                    Spacer()
+                    Button("Add Application…", systemImage: "plus") {
+                        isAddingApplication = true
+                    }
+                    .controlSize(.large)
+                }
+
+                LazyVStack(spacing: 14) {
+                    ForEach(appState.applicationRules) { rule in
+                        ApplicationRuleCard(ruleID: rule.id)
                     }
                 }
-                .padding(22)
-                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18))
 
                 HStack(alignment: .top, spacing: 12) {
                     Image(systemName: "info.circle.fill")
                         .foregroundStyle(Color.accentColor)
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Zoom should use “Same as System”")
+                        Text("Use “Same as System” inside your apps")
                             .font(.headline)
-                        Text("FOH changes the macOS system defaults when Zoom launches. A device pinned inside Zoom can take precedence. FOH leaves devices unchanged when Zoom quits.")
+                        Text("FOH changes the macOS system defaults when an enabled app launches. A device selected inside the app can take precedence. FOH leaves devices unchanged when the app quits.")
                             .font(.callout)
                             .foregroundStyle(.secondary)
                     }
@@ -88,26 +46,150 @@ struct AutomationsView: View {
             .frame(maxWidth: 820, alignment: .leading)
         }
         .background(Color(nsColor: .windowBackgroundColor))
+        .fileImporter(
+            isPresented: $isAddingApplication,
+            allowedContentTypes: [.applicationBundle],
+            allowsMultipleSelection: false
+        ) { result in
+            if case let .success(urls) = result, let url = urls.first {
+                appState.addApplication(at: url)
+            }
+        }
+        .alert("FOH couldn’t update this automation", isPresented: errorBinding) {
+            Button("OK", role: .cancel) { appState.errorMessage = nil }
+        } message: {
+            Text(appState.errorMessage ?? "Unknown error")
+        }
     }
 
-    private var enabled: Binding<Bool> {
+    private var errorBinding: Binding<Bool> {
         Binding(
-            get: { appState.zoomRule.isEnabled },
-            set: { appState.setZoomRuleEnabled($0) }
+            get: { appState.errorMessage != nil },
+            set: { if !$0 { appState.errorMessage = nil } }
+        )
+    }
+}
+
+private struct ApplicationRuleCard: View {
+    @EnvironmentObject private var appState: AppState
+    let ruleID: String
+
+    private var rule: ApplicationAudioRule? {
+        appState.applicationRules.first { $0.id == ruleID }
+    }
+
+    var body: some View {
+        if let rule {
+            let installed = appState.isApplicationInstalled(rule)
+            VStack(alignment: .leading, spacing: 18) {
+                HStack(spacing: 14) {
+                    Image(systemName: iconName(for: rule.bundleIdentifier))
+                        .font(.title2)
+                        .foregroundStyle(installed ? Color.accentColor : Color.secondary)
+                        .frame(width: 42, height: 42)
+                        .background((installed ? Color.accentColor : Color.secondary).opacity(0.12), in: RoundedRectangle(cornerRadius: 11))
+
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(rule.displayName)
+                            .font(.title3.bold())
+                        status(for: rule, installed: installed)
+                    }
+
+                    Spacer()
+
+                    if !rule.isPreset {
+                        Button("Remove", systemImage: "trash", role: .destructive) {
+                            appState.removeApplicationRule(rule.id)
+                        }
+                        .labelStyle(.iconOnly)
+                        .help("Remove \(rule.displayName)")
+                    }
+
+                    Toggle("Enable \(rule.displayName) automation", isOn: enabledBinding(for: rule))
+                        .labelsHidden()
+                        .disabled(!installed)
+                }
+
+                Divider()
+
+                Grid(alignment: .leading, horizontalSpacing: 18, verticalSpacing: 16) {
+                    GridRow {
+                        Label("Microphone", systemImage: "mic.fill")
+                        devicePicker(direction: .input, rule: rule)
+                    }
+                    GridRow {
+                        Label("Listening", systemImage: "headphones")
+                        devicePicker(direction: .output, rule: rule)
+                    }
+                }
+                .disabled(!installed || !rule.isEnabled)
+
+                HStack {
+                    Text(installed ? "Runs when \(rule.displayName) launches" : "Install \(rule.displayName) to enable this preset")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Button("Test rule now") {
+                        appState.testApplicationRule(rule.id)
+                    }
+                    .disabled(!installed || !rule.isEnabled)
+                }
+            }
+            .padding(22)
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18))
+            .opacity(installed ? 1 : 0.62)
+        }
+    }
+
+    @ViewBuilder
+    private func status(for rule: ApplicationAudioRule, installed: Bool) -> some View {
+        if appState.isApplicationRunning(rule) {
+            Text("●  Running now")
+                .foregroundStyle(.green)
+                .font(.caption)
+        } else if installed {
+            Text("○  Installed")
+                .foregroundStyle(.secondary)
+                .font(.caption)
+        } else {
+            Text("○  Not installed")
+                .foregroundStyle(.secondary)
+                .font(.caption)
+        }
+    }
+
+    private func devicePicker(direction: AudioDirection, rule: ApplicationAudioRule) -> some View {
+        Picker(direction.title, selection: deviceBinding(direction: direction, rule: rule)) {
+            Text("Highest-priority available").tag("")
+            ForEach(appState.priorities(for: direction)) { priority in
+                Text(priority.name).tag(priority.id)
+            }
+        }
+        .labelsHidden()
+    }
+
+    private func enabledBinding(for rule: ApplicationAudioRule) -> Binding<Bool> {
+        Binding(
+            get: { appState.applicationRules.first(where: { $0.id == rule.id })?.isEnabled ?? false },
+            set: { appState.setApplicationRuleEnabled(rule.id, isEnabled: $0) }
         )
     }
 
-    private var inputSelection: Binding<String> {
+    private func deviceBinding(direction: AudioDirection, rule: ApplicationAudioRule) -> Binding<String> {
         Binding(
-            get: { appState.zoomRule.inputDeviceID ?? "" },
-            set: { appState.setZoomDevice($0.isEmpty ? nil : $0, for: .input) }
+            get: {
+                guard let current = appState.applicationRules.first(where: { $0.id == rule.id }) else { return "" }
+                return direction == .input ? current.inputDeviceID ?? "" : current.outputDeviceID ?? ""
+            },
+            set: { appState.setApplicationDevice($0.isEmpty ? nil : $0, for: direction, ruleID: rule.id) }
         )
     }
 
-    private var outputSelection: Binding<String> {
-        Binding(
-            get: { appState.zoomRule.outputDeviceID ?? "" },
-            set: { appState.setZoomDevice($0.isEmpty ? nil : $0, for: .output) }
-        )
+    private func iconName(for bundleIdentifier: String) -> String {
+        switch bundleIdentifier {
+        case "us.zoom.xos", "com.microsoft.teams2", "Cisco-Systems.Spark", "com.apple.FaceTime": "video.fill"
+        case "com.tinyspeck.slackmacgap", "com.hnc.Discord": "bubble.left.and.bubble.right.fill"
+        default: "app.fill"
+        }
     }
 }

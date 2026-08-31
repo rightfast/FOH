@@ -109,7 +109,7 @@ final class AppStateAutomationTests: XCTestCase {
         XCTAssertEqual(state.defaultOutput?.id, output.id)
     }
 
-    func testZoomLaunchAppliesConfiguredInputAndOutput() async {
+    func testPresetApplicationLaunchAppliesConfiguredInputAndOutput() async {
         let input = device(id: 60, uid: "zoom-input", name: "Desk Microphone", direction: .input)
         let output = device(id: 61, uid: "zoom-output", name: "Desk Headphones", direction: .output)
         let otherInput = device(id: 62, uid: "other-input", name: "Mac Microphone", direction: .input)
@@ -121,18 +121,37 @@ final class AppStateAutomationTests: XCTestCase {
         )
         let applications = FakeApplicationMonitor()
         let state = AppState(hardware: hardware, defaults: defaults, applicationMonitor: applications)
-        state.setZoomDevice(input.id, for: .input)
-        state.setZoomDevice(output.id, for: .output)
-        state.setZoomRuleEnabled(true)
+        let zoomID = "us.zoom.xos"
+        state.setApplicationDevice(input.id, for: .input, ruleID: zoomID)
+        state.setApplicationDevice(output.id, for: .output, ruleID: zoomID)
+        state.setApplicationRuleEnabled(zoomID, isEnabled: true)
 
         applications.launch("us.zoom.xos")
         await Task.yield()
         await Task.yield()
 
-        XCTAssertTrue(state.isZoomRunning)
+        XCTAssertTrue(state.runningApplicationIDs.contains(zoomID))
         XCTAssertEqual(hardware.selections.map(\.id), [input.id, output.id])
         XCTAssertEqual(state.defaultInput?.id, input.id)
         XCTAssertEqual(state.defaultOutput?.id, output.id)
+        XCTAssertEqual(state.events.last?.kind, .applicationRuleApplied)
+    }
+
+    func testNonZoomPresetLaunchUsesTheSameGenericAutomationEngine() async {
+        let input = device(id: 70, uid: "slack-input", name: "Conference Microphone", direction: .input)
+        let output = device(id: 71, uid: "slack-output", name: "Conference Speakers", direction: .output)
+        let hardware = FakeAudioHardware(devices: [input, output])
+        let applications = FakeApplicationMonitor(installed: ["com.tinyspeck.slackmacgap"])
+        let state = AppState(hardware: hardware, defaults: defaults, applicationMonitor: applications)
+        let slackID = "com.tinyspeck.slackmacgap"
+        state.setApplicationRuleEnabled(slackID, isEnabled: true)
+
+        applications.launch(slackID)
+        await Task.yield()
+        await Task.yield()
+
+        XCTAssertTrue(state.runningApplicationIDs.contains(slackID))
+        XCTAssertEqual(hardware.selections.map(\.id), [input.id, output.id])
         XCTAssertEqual(state.events.last?.kind, .applicationRuleApplied)
     }
 
@@ -192,10 +211,20 @@ private final class FakeApplicationMonitor: ApplicationMonitoring, @unchecked Se
     var onTerminate: (@Sendable (String) -> Void)?
     private var running: Set<String> = []
 
+    private let installed: Set<String>
+
+    init(installed: Set<String> = []) {
+        self.installed = installed
+    }
+
     func startObserving() {}
 
     func isRunning(bundleIdentifier: String) -> Bool {
         running.contains(bundleIdentifier)
+    }
+
+    func applicationURL(bundleIdentifier: String) -> URL? {
+        installed.contains(bundleIdentifier) ? URL(fileURLWithPath: "/Applications/Fake.app") : nil
     }
 
     func launch(_ bundleIdentifier: String) {

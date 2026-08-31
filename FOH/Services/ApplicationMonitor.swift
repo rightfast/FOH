@@ -6,6 +6,7 @@ protocol ApplicationMonitoring: AnyObject, Sendable {
     var onTerminate: (@Sendable (String) -> Void)? { get set }
     func startObserving()
     func isRunning(bundleIdentifier: String) -> Bool
+    func applicationURL(bundleIdentifier: String) -> URL?
 }
 
 final class ApplicationMonitor: ApplicationMonitoring, @unchecked Sendable {
@@ -42,6 +43,10 @@ final class ApplicationMonitor: ApplicationMonitoring, @unchecked Sendable {
 
     func isRunning(bundleIdentifier: String) -> Bool {
         workspace.runningApplications.contains { $0.bundleIdentifier == bundleIdentifier }
+    }
+
+    func applicationURL(bundleIdentifier: String) -> URL? {
+        workspace.urlForApplication(withBundleIdentifier: bundleIdentifier)
     }
 
     deinit {

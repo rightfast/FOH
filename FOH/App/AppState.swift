@@ -10,8 +10,8 @@ final class AppState: ObservableObject {
     @Published private(set) var events: [DiagnosticEvent] = []
     @Published private(set) var priorities: [DevicePriority]
     @Published private(set) var automationNotice: AutomationNotice?
-    @Published private(set) var isZoomRunning = false
-    @Published private(set) var zoomRule: ApplicationAudioRule
+    @Published private(set) var runningApplicationIDs: Set<String> = []
+    @Published private(set) var applicationRules: [ApplicationAudioRule]
     @Published var automaticSwitching: Bool {
         didSet {
             defaults.set(automaticSwitching, forKey: Keys.automaticSwitching)
@@ -41,7 +41,7 @@ final class AppState: ObservableObject {
         self.defaults = defaults
         self.applicationMonitor = applicationMonitor
         priorities = Self.loadPriorities(from: defaults)
-        zoomRule = Self.loadZoomRule(from: defaults)
+        applicationRules = Self.loadApplicationRules(from: defaults)
         automaticSwitching = defaults.bool(forKey: Keys.automaticSwitching)
         restoresPreferredDevice = defaults.object(forKey: Keys.restoresPreferredDevice) as? Bool ?? true
         hardware.onChange = { [weak self] in
@@ -56,9 +56,13 @@ final class AppState: ObservableObject {
             Task { @MainActor in self?.applicationDidTerminate(bundleIdentifier) }
         }
         applicationMonitor.startObserving()
-        isZoomRunning = applicationMonitor.isRunning(bundleIdentifier: zoomRule.bundleIdentifier)
+        runningApplicationIDs = Set(applicationRules.filter {
+            applicationMonitor.isRunning(bundleIdentifier: $0.bundleIdentifier)
+        }.map(\.bundleIdentifier))
         record(.appStarted, "FOH started and discovered \(devices.count) audio endpoints.")
-        if isZoomRunning, zoomRule.isEnabled { applyZoomRule(trigger: "Zoom was already running") }
+        for rule in applicationRules where rule.isEnabled && runningApplicationIDs.contains(rule.bundleIdentifier) {
+            applyApplicationRule(rule, trigger: "\(rule.displayName) was already running")
+        }
     }
 
     var inputDevices: [AudioDevice] { devices.filter { $0.direction == .input } }
@@ -123,23 +127,75 @@ final class AppState: ObservableObject {
         events.removeAll()
     }
 
-    func setZoomRuleEnabled(_ isEnabled: Bool) {
-        zoomRule.isEnabled = isEnabled
-        saveZoomRule()
-        record(.applicationRuleChanged, "Zoom audio automation \(isEnabled ? "enabled" : "disabled").")
-        if isEnabled, isZoomRunning { applyZoomRule(trigger: "Zoom automation was enabled") }
+    func isApplicationRunning(_ rule: ApplicationAudioRule) -> Bool {
+        runningApplicationIDs.contains(rule.bundleIdentifier)
     }
 
-    func setZoomDevice(_ deviceID: String?, for direction: AudioDirection) {
-        if direction == .input { zoomRule.inputDeviceID = deviceID } else { zoomRule.outputDeviceID = deviceID }
-        saveZoomRule()
+    func isApplicationInstalled(_ rule: ApplicationAudioRule) -> Bool {
+        if let path = rule.applicationPath, FileManager.default.fileExists(atPath: path) { return true }
+        return applicationMonitor.applicationURL(bundleIdentifier: rule.bundleIdentifier) != nil
+    }
+
+    func setApplicationRuleEnabled(_ ruleID: String, isEnabled: Bool) {
+        guard let index = applicationRules.firstIndex(where: { $0.id == ruleID }) else { return }
+        applicationRules[index].isEnabled = isEnabled
+        let rule = applicationRules[index]
+        saveApplicationRules()
+        record(.applicationRuleChanged, "\(rule.displayName) audio automation \(isEnabled ? "enabled" : "disabled").")
+        if isEnabled, isApplicationRunning(rule) { applyApplicationRule(rule, trigger: "\(rule.displayName) automation was enabled") }
+    }
+
+    func setApplicationDevice(_ deviceID: String?, for direction: AudioDirection, ruleID: String) {
+        guard let index = applicationRules.firstIndex(where: { $0.id == ruleID }) else { return }
+        if direction == .input { applicationRules[index].inputDeviceID = deviceID } else { applicationRules[index].outputDeviceID = deviceID }
+        let rule = applicationRules[index]
+        saveApplicationRules()
         let choice = deviceID.flatMap { id in priorities.first(where: { $0.id == id })?.name } ?? "highest-priority available device"
-        record(.applicationRuleChanged, "Zoom \(direction.rawValue) set to \(choice).")
-        if zoomRule.isEnabled, isZoomRunning { applyZoomRule(trigger: "Zoom rule was updated") }
+        record(.applicationRuleChanged, "\(rule.displayName) \(direction.rawValue) set to \(choice).")
+        if rule.isEnabled, isApplicationRunning(rule) { applyApplicationRule(rule, trigger: "\(rule.displayName) rule was updated") }
     }
 
-    func testZoomRule() {
-        applyZoomRule(trigger: "Zoom rule test")
+    func testApplicationRule(_ ruleID: String) {
+        guard let rule = applicationRules.first(where: { $0.id == ruleID }) else { return }
+        applyApplicationRule(rule, trigger: "\(rule.displayName) rule test")
+    }
+
+    func addApplication(at url: URL) {
+        let accessing = url.startAccessingSecurityScopedResource()
+        defer { if accessing { url.stopAccessingSecurityScopedResource() } }
+        guard let bundle = Bundle(url: url), let identifier = bundle.bundleIdentifier else {
+            errorMessage = "FOH couldn’t read that application’s bundle identifier."
+            return
+        }
+        guard !applicationRules.contains(where: { $0.bundleIdentifier == identifier }) else {
+            errorMessage = "That application already has an automation rule."
+            return
+        }
+        let name = bundle.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String
+            ?? bundle.object(forInfoDictionaryKey: "CFBundleName") as? String
+            ?? url.deletingPathExtension().lastPathComponent
+        applicationRules.append(ApplicationAudioRule(
+            bundleIdentifier: identifier,
+            displayName: name,
+            applicationPath: url.path,
+            isPreset: false,
+            isEnabled: false,
+            inputDeviceID: nil,
+            outputDeviceID: nil
+        ))
+        if applicationMonitor.isRunning(bundleIdentifier: identifier) {
+            runningApplicationIDs.insert(identifier)
+        }
+        saveApplicationRules()
+        record(.applicationRuleChanged, "Added \(name) to application automations.")
+    }
+
+    func removeApplicationRule(_ ruleID: String) {
+        guard let rule = applicationRules.first(where: { $0.id == ruleID }), !rule.isPreset else { return }
+        applicationRules.removeAll { $0.id == ruleID }
+        runningApplicationIDs.remove(ruleID)
+        saveApplicationRules()
+        record(.applicationRuleChanged, "Removed \(rule.displayName) from application automations.")
     }
 
     func refresh() {
@@ -294,22 +350,22 @@ final class AppState: ObservableObject {
     }
 
     private func applicationDidLaunch(_ bundleIdentifier: String) {
-        guard bundleIdentifier == zoomRule.bundleIdentifier else { return }
-        isZoomRunning = true
-        record(.applicationDetected, "Zoom launched.")
-        if zoomRule.isEnabled { applyZoomRule(trigger: "Zoom launched") }
+        guard let rule = applicationRules.first(where: { $0.bundleIdentifier == bundleIdentifier }) else { return }
+        runningApplicationIDs.insert(bundleIdentifier)
+        record(.applicationDetected, "\(rule.displayName) launched.")
+        if rule.isEnabled { applyApplicationRule(rule, trigger: "\(rule.displayName) launched") }
     }
 
     private func applicationDidTerminate(_ bundleIdentifier: String) {
-        guard bundleIdentifier == zoomRule.bundleIdentifier else { return }
-        isZoomRunning = false
-        record(.applicationDetected, "Zoom quit. FOH left the current system devices unchanged.")
+        guard let rule = applicationRules.first(where: { $0.bundleIdentifier == bundleIdentifier }) else { return }
+        runningApplicationIDs.remove(bundleIdentifier)
+        record(.applicationDetected, "\(rule.displayName) quit. FOH left the current system devices unchanged.")
     }
 
-    private func applyZoomRule(trigger: String) {
+    private func applyApplicationRule(_ rule: ApplicationAudioRule, trigger: String) {
         var appliedNames: [String] = []
         for direction in AudioDirection.allCases {
-            let configuredID = direction == .input ? zoomRule.inputDeviceID : zoomRule.outputDeviceID
+            let configuredID = direction == .input ? rule.inputDeviceID : rule.outputDeviceID
             let available = devices.filter { $0.direction == direction }
             let availableIDs = Set(available.map(\.id))
             guard let targetID = ApplicationRulePolicy.target(
@@ -332,14 +388,14 @@ final class AppState: ObservableObject {
         }
 
         guard !appliedNames.isEmpty else {
-            let message = "No available devices could satisfy the Zoom rule."
+            let message = "No available devices could satisfy the \(rule.displayName) rule."
             record(.error, message)
-            showNotice(title: "Zoom rule needs attention", detail: message)
+            showNotice(title: "\(rule.displayName) rule needs attention", detail: message)
             return
         }
         let detail = "\(trigger): \(appliedNames.joined(separator: ", "))."
         record(.applicationRuleApplied, detail)
-        showNotice(title: "Zoom audio is ready", detail: detail)
+        showNotice(title: "\(rule.displayName) audio is ready", detail: detail)
     }
 
     private func savePriorities() {
@@ -354,16 +410,29 @@ final class AppState: ObservableObject {
         return priorities
     }
 
-    private func saveZoomRule() {
-        if let data = try? JSONEncoder().encode(zoomRule) {
-            defaults.set(data, forKey: Keys.zoomRule)
+    private func saveApplicationRules() {
+        if let data = try? JSONEncoder().encode(applicationRules) {
+            defaults.set(data, forKey: Keys.applicationRules)
         }
     }
 
-    private static func loadZoomRule(from defaults: UserDefaults) -> ApplicationAudioRule {
-        guard let data = defaults.data(forKey: Keys.zoomRule),
-              let rule = try? JSONDecoder().decode(ApplicationAudioRule.self, from: data) else { return .zoom }
-        return rule
+    private static func loadApplicationRules(from defaults: UserDefaults) -> [ApplicationAudioRule] {
+        var stored = defaults.data(forKey: Keys.applicationRules)
+            .flatMap { try? JSONDecoder().decode([ApplicationAudioRule].self, from: $0) } ?? []
+        if stored.isEmpty,
+           let legacyData = defaults.data(forKey: Keys.zoomRule),
+           let legacy = try? JSONDecoder().decode(LegacyApplicationAudioRule.self, from: legacyData),
+           let zoomIndex = ApplicationAudioRule.presets.firstIndex(where: { $0.bundleIdentifier == legacy.bundleIdentifier }) {
+            var zoom = ApplicationAudioRule.presets[zoomIndex]
+            zoom.isEnabled = legacy.isEnabled
+            zoom.inputDeviceID = legacy.inputDeviceID
+            zoom.outputDeviceID = legacy.outputDeviceID
+            stored.append(zoom)
+        }
+        for preset in ApplicationAudioRule.presets where !stored.contains(where: { $0.bundleIdentifier == preset.bundleIdentifier }) {
+            stored.append(preset)
+        }
+        return stored
     }
 
     private enum Keys {
@@ -371,5 +440,13 @@ final class AppState: ObservableObject {
         static let automaticSwitching = "automaticSwitching.v1"
         static let restoresPreferredDevice = "restoresPreferredDevice.v1"
         static let zoomRule = "zoomAudioRule.v1"
+        static let applicationRules = "applicationAudioRules.v2"
+    }
+
+    private struct LegacyApplicationAudioRule: Codable {
+        let bundleIdentifier: String
+        let isEnabled: Bool
+        let inputDeviceID: String?
+        let outputDeviceID: String?
     }
 }
