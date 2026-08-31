@@ -69,10 +69,12 @@ final class MicrophoneMonitor: ObservableObject {
               visibleConsumerCount > 0 else { return }
 
         let inputNode = engine.inputNode
-        inputNode.installTap(onBus: 0, bufferSize: 512, format: nil) { [weak self] buffer, _ in
-            let level = Self.normalizedLevel(buffer: buffer)
-            Task { @MainActor in self?.append(level) }
-        }
+        inputNode.installTap(
+            onBus: 0,
+            bufferSize: 512,
+            format: nil,
+            block: Self.makeTap(for: self)
+        )
 
         do {
             engine.prepare()
@@ -105,7 +107,7 @@ final class MicrophoneMonitor: ObservableObject {
         return min(1, max(0, (decibels + 60) / 60))
     }
 
-    private static func normalizedLevel(buffer: AVAudioPCMBuffer) -> Double {
+    private nonisolated static func normalizedLevel(buffer: AVAudioPCMBuffer) -> Double {
         guard let channels = buffer.floatChannelData,
               buffer.frameLength > 0 else { return 0 }
         let frameCount = Int(buffer.frameLength)
@@ -122,6 +124,13 @@ final class MicrophoneMonitor: ObservableObject {
         guard sampleCount > 0, sum > 0 else { return 0 }
         let decibels = 20 * log10(sqrt(sum / Double(sampleCount)))
         return min(1, max(0, (decibels + 60) / 60))
+    }
+
+    private nonisolated static func makeTap(for monitor: MicrophoneMonitor) -> AVAudioNodeTapBlock {
+        { [weak monitor] buffer, _ in
+            let level = normalizedLevel(buffer: buffer)
+            Task { @MainActor in monitor?.append(level) }
+        }
     }
 
     private static var currentAuthorization: Authorization {

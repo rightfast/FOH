@@ -23,7 +23,7 @@ struct InputActivityView: View {
                 Text("Microphone access is off. Allow FOH in Privacy & Security to show activity.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-            case .notDetermined where !monitor.isEnabled:
+            case .notDetermined:
                 enablePrompt
             case .authorized where !monitor.isEnabled:
                 enablePrompt
@@ -56,6 +56,12 @@ struct InputActivityView: View {
                 Button("Turn off") { monitor.disable() }
                     .buttonStyle(.plain)
                     .font(.caption.weight(.medium))
+            }
+
+            if let errorMessage = monitor.errorMessage {
+                Text(errorMessage)
+                    .font(.caption2)
+                    .foregroundStyle(.red)
             }
         }
     }
