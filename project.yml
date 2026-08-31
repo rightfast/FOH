@@ -27,6 +27,7 @@ targets:
         INFOPLIST_KEY_LSUIElement: YES
         INFOPLIST_KEY_NSHumanReadableCopyright: "Copyright © 2026 Right Fast Studio"
         INFOPLIST_KEY_NSMicrophoneUsageDescription: "FOH uses your selected microphone only to display live input activity. Audio is analyzed locally and never saved or transmitted."
+        INFOPLIST_KEY_NSAppleEventsUsageDescription: "FOH checks the active tab in supported browsers to apply audio rules for meeting domains you choose. URLs are processed locally and are never stored or transmitted."
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ENABLE_APP_SANDBOX: YES
         ENABLE_HARDENED_RUNTIME: YES

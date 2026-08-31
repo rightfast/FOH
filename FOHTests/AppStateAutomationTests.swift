@@ -155,6 +155,28 @@ final class AppStateAutomationTests: XCTestCase {
         XCTAssertEqual(state.events.last?.kind, .applicationRuleApplied)
     }
 
+    func testBrowserMeetingDomainAppliesConfiguredAudioRule() {
+        let input = device(id: 80, uid: "browser-input", name: "Browser Microphone", direction: .input)
+        let output = device(id: 81, uid: "browser-output", name: "Browser Headphones", direction: .output)
+        let hardware = FakeAudioHardware(devices: [input, output])
+        let browser = FakeBrowserMonitor()
+        let state = AppState(
+            hardware: hardware,
+            defaults: defaults,
+            applicationMonitor: FakeApplicationMonitor(),
+            browserMonitor: browser
+        )
+        state.setBrowserDevice(input.id, for: .input)
+        state.setBrowserDevice(output.id, for: .output)
+        state.setBrowserAutomationEnabled(true)
+
+        browser.emit(browserID: "com.google.Chrome", url: "https://meet.google.com/abc-defg-hij")
+
+        XCTAssertEqual(state.activeMeetingDomain, "meet.google.com")
+        XCTAssertEqual(hardware.selections.map(\.id), [input.id, output.id])
+        XCTAssertEqual(state.events.last?.kind, .applicationRuleApplied)
+    }
+
     private func device(id: AudioObjectID, uid: String, name: String, direction: AudioDirection) -> AudioDevice {
         AudioDevice(
             objectID: id,
@@ -173,6 +195,22 @@ final class AppStateAutomationTests: XCTestCase {
             volume: nil,
             isMuted: nil
         )
+    }
+}
+
+@MainActor
+private final class FakeBrowserMonitor: BrowserMonitoring {
+    var onChange: ((BrowserPageSnapshot) -> Void)?
+
+    func startObserving() {}
+    func checkNow() {}
+
+    func emit(browserID: String, url: String) {
+        onChange?(BrowserPageSnapshot(
+            browserBundleIdentifier: browserID,
+            url: URL(string: url),
+            permissionDenied: false
+        ))
     }
 }
 

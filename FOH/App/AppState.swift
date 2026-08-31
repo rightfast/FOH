@@ -12,6 +12,9 @@ final class AppState: ObservableObject {
     @Published private(set) var automationNotice: AutomationNotice?
     @Published private(set) var runningApplicationIDs: Set<String> = []
     @Published private(set) var applicationRules: [ApplicationAudioRule]
+    @Published private(set) var browserRule: BrowserAudioRule
+    @Published private(set) var activeMeetingDomain: String?
+    @Published private(set) var browserPermissionDenied = false
     @Published var automaticSwitching: Bool {
         didSet {
             defaults.set(automaticSwitching, forKey: Keys.automaticSwitching)
@@ -29,19 +32,23 @@ final class AppState: ObservableObject {
     private let hardware: any AudioHardwareProviding
     private let defaults: UserDefaults
     private let applicationMonitor: any ApplicationMonitoring
+    private let browserMonitor: any BrowserMonitoring
     private var refreshTask: Task<Void, Never>?
     private var noticeTask: Task<Void, Never>?
 
     init(
         hardware: any AudioHardwareProviding = AudioHardwareService(),
         defaults: UserDefaults = .standard,
-        applicationMonitor: any ApplicationMonitoring = ApplicationMonitor()
+        applicationMonitor: any ApplicationMonitoring = ApplicationMonitor(),
+        browserMonitor: any BrowserMonitoring = BrowserMonitor()
     ) {
         self.hardware = hardware
         self.defaults = defaults
         self.applicationMonitor = applicationMonitor
+        self.browserMonitor = browserMonitor
         priorities = Self.loadPriorities(from: defaults)
         applicationRules = Self.loadApplicationRules(from: defaults)
+        browserRule = Self.loadBrowserRule(from: defaults)
         automaticSwitching = defaults.bool(forKey: Keys.automaticSwitching)
         restoresPreferredDevice = defaults.object(forKey: Keys.restoresPreferredDevice) as? Bool ?? true
         hardware.onChange = { [weak self] in
@@ -63,6 +70,10 @@ final class AppState: ObservableObject {
         for rule in applicationRules where rule.isEnabled && runningApplicationIDs.contains(rule.bundleIdentifier) {
             applyApplicationRule(rule, trigger: "\(rule.displayName) was already running")
         }
+        browserMonitor.onChange = { [weak self] snapshot in
+            self?.browserPageDidChange(snapshot)
+        }
+        browserMonitor.startObserving()
     }
 
     var inputDevices: [AudioDevice] { devices.filter { $0.direction == .input } }
@@ -196,6 +207,64 @@ final class AppState: ObservableObject {
         runningApplicationIDs.remove(ruleID)
         saveApplicationRules()
         record(.applicationRuleChanged, "Removed \(rule.displayName) from application automations.")
+    }
+
+    func isBrowserInstalled(_ browser: SupportedBrowser) -> Bool {
+        applicationMonitor.applicationURL(bundleIdentifier: browser.id) != nil
+    }
+
+    func setBrowserAutomationEnabled(_ isEnabled: Bool) {
+        browserRule.isEnabled = isEnabled
+        saveBrowserRule()
+        activeMeetingDomain = nil
+        browserPermissionDenied = false
+        record(.applicationRuleChanged, "Browser meeting automation \(isEnabled ? "enabled" : "disabled").")
+        if isEnabled { browserMonitor.checkNow() }
+    }
+
+    func setBrowserEnabled(_ bundleIdentifier: String, isEnabled: Bool) {
+        if isEnabled {
+            browserRule.browserBundleIdentifiers.insert(bundleIdentifier)
+        } else {
+            browserRule.browserBundleIdentifiers.remove(bundleIdentifier)
+        }
+        saveBrowserRule()
+        activeMeetingDomain = nil
+        if browserRule.isEnabled { browserMonitor.checkNow() }
+    }
+
+    func setBrowserDevice(_ deviceID: String?, for direction: AudioDirection) {
+        if direction == .input { browserRule.inputDeviceID = deviceID } else { browserRule.outputDeviceID = deviceID }
+        saveBrowserRule()
+        record(.applicationRuleChanged, "Browser meeting \(direction.rawValue) selection changed.")
+        if browserRule.isEnabled { browserMonitor.checkNow() }
+    }
+
+    func addBrowserDomain(_ value: String) {
+        guard let domain = BrowserDomainPolicy.normalizedDomain(value) else {
+            errorMessage = "Enter a valid domain such as meet.example.com."
+            return
+        }
+        guard !browserRule.domains.contains(domain) else {
+            errorMessage = "That meeting domain is already included."
+            return
+        }
+        browserRule.domains.append(domain)
+        browserRule.domains.sort()
+        saveBrowserRule()
+        record(.applicationRuleChanged, "Added a browser meeting domain.")
+        if browserRule.isEnabled { browserMonitor.checkNow() }
+    }
+
+    func removeBrowserDomain(_ domain: String) {
+        browserRule.domains.removeAll { $0 == domain }
+        saveBrowserRule()
+        if activeMeetingDomain == domain { activeMeetingDomain = nil }
+        record(.applicationRuleChanged, "Removed a browser meeting domain.")
+    }
+
+    func testBrowserRule() {
+        applyBrowserRule(trigger: "Browser meeting rule test")
     }
 
     func refresh() {
@@ -362,6 +431,39 @@ final class AppState: ObservableObject {
         record(.applicationDetected, "\(rule.displayName) quit. FOH left the current system devices unchanged.")
     }
 
+    private func browserPageDidChange(_ snapshot: BrowserPageSnapshot) {
+        if snapshot.permissionDenied {
+            browserPermissionDenied = true
+        } else if snapshot.browserBundleIdentifier != nil {
+            browserPermissionDenied = false
+        }
+        guard browserRule.isEnabled,
+              !snapshot.permissionDenied,
+              let browserID = snapshot.browserBundleIdentifier,
+              browserRule.browserBundleIdentifiers.contains(browserID),
+              let url = snapshot.url,
+              let domain = BrowserDomainPolicy.matchingDomain(for: url, domains: browserRule.domains) else {
+            activeMeetingDomain = nil
+            return
+        }
+        guard activeMeetingDomain != domain else { return }
+        activeMeetingDomain = domain
+        applyBrowserRule(trigger: "A meeting opened on \(domain)")
+    }
+
+    private func applyBrowserRule(trigger: String) {
+        let syntheticRule = ApplicationAudioRule(
+            bundleIdentifier: "studio.rightfast.foh.browser-meetings",
+            displayName: "Browser meetings",
+            applicationPath: nil,
+            isPreset: true,
+            isEnabled: browserRule.isEnabled,
+            inputDeviceID: browserRule.inputDeviceID,
+            outputDeviceID: browserRule.outputDeviceID
+        )
+        applyApplicationRule(syntheticRule, trigger: trigger)
+    }
+
     private func applyApplicationRule(_ rule: ApplicationAudioRule, trigger: String) {
         var appliedNames: [String] = []
         for direction in AudioDirection.allCases {
@@ -435,12 +537,25 @@ final class AppState: ObservableObject {
         return stored
     }
 
+    private func saveBrowserRule() {
+        if let data = try? JSONEncoder().encode(browserRule) {
+            defaults.set(data, forKey: Keys.browserRule)
+        }
+    }
+
+    private static func loadBrowserRule(from defaults: UserDefaults) -> BrowserAudioRule {
+        guard let data = defaults.data(forKey: Keys.browserRule),
+              let rule = try? JSONDecoder().decode(BrowserAudioRule.self, from: data) else { return .standard }
+        return rule
+    }
+
     private enum Keys {
         static let priorities = "devicePriorities.v1"
         static let automaticSwitching = "automaticSwitching.v1"
         static let restoresPreferredDevice = "restoresPreferredDevice.v1"
         static let zoomRule = "zoomAudioRule.v1"
         static let applicationRules = "applicationAudioRules.v2"
+        static let browserRule = "browserAudioRule.v1"
     }
 
     private struct LegacyApplicationAudioRule: Codable {

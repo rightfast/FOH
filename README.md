@@ -42,3 +42,9 @@ when a supported work app launches. FOH includes visible presets for Zoom Workpl
 Microsoft Teams, Slack, Cisco Webex, Discord, and FaceTime; presets that are not
 installed remain visible but disabled. You can also add any installed macOS app with
 the application picker. Automated apps should be configured to use “Same as System.”
+
+The opt-in Browser Meetings rule supports Safari and Google Chrome. It watches only
+the frontmost browser tab and applies the selected audio devices when its domain
+matches Google Meet, Zoom, Microsoft Teams, Riverside, or a custom domain. Full URLs
+are processed locally and are never stored or transmitted. macOS asks for Automation
+permission the first time FOH needs to inspect a supported browser.
