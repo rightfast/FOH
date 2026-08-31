@@ -55,12 +55,13 @@ jobs:
             gh release create "$RELEASE_TAG" \
               --target "$GITHUB_SHA" \
               --title "$release_title" \
-              --prerelease \
+              --latest \
               --notes "Release candidate for hands-on testing. Refines the Signal Desk interface with a cleaner onboarding wordmark, consistently aligned settings controls, a precise Scene form grid, clearer Scene actions, and a Finder-safe DMG layout. Universal for Apple Silicon and Intel. This build is not Developer ID signed or notarized; follow the README first-launch instructions."
           else
             gh release edit "$RELEASE_TAG" \
               --title "$release_title" \
-              --prerelease
+              --prerelease=false \
+              --latest
           fi
           gh release upload "$RELEASE_TAG" \
             build/release/FOH.dmg \
