@@ -17,14 +17,14 @@ Scripts/build-release.sh --adhoc --skip-notarization
 ```
 
 The artifact is written to `build/release/FOH.dmg`. The manually triggered
-`preview.yml` workflow publishes the same ad-hoc artifact to a rolling GitHub
+`preview.yml` workflow publishes the same ad-hoc artifact as a numbered GitHub
 pre-release. Testers must use macOS's per-app **Open Anyway** override on first
 launch. Do not present this artifact as a verified public release.
 
 The stable preview download is:
 
 ```text
-https://github.com/rightfast/FOH/releases/download/preview/FOH.dmg
+https://github.com/rightfast/FOH/releases/download/v0.1.0-preview.1/FOH.dmg
 ```
 
 ## Production build

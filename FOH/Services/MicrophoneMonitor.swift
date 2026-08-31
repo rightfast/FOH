@@ -1,6 +1,14 @@
 @preconcurrency import AVFoundation
 import Foundation
 
+private final class WeakMicrophoneMonitorBox: @unchecked Sendable {
+    weak var value: MicrophoneMonitor?
+
+    init(_ value: MicrophoneMonitor) {
+        self.value = value
+    }
+}
+
 @MainActor
 final class MicrophoneMonitor: ObservableObject, @unchecked Sendable {
     enum Authorization: Equatable {
@@ -127,9 +135,10 @@ final class MicrophoneMonitor: ObservableObject, @unchecked Sendable {
     }
 
     private nonisolated static func makeTap(for monitor: MicrophoneMonitor) -> AVAudioNodeTapBlock {
-        { [weak monitor] buffer, _ in
+        let monitorBox = WeakMicrophoneMonitorBox(monitor)
+        return { buffer, _ in
             let level = normalizedLevel(buffer: buffer)
-            Task { @MainActor in monitor?.append(level) }
+            Task { @MainActor in monitorBox.value?.append(level) }
         }
     }
 

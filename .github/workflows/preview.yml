@@ -2,6 +2,11 @@ name: Publish Preview
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: Preview version tag
+        required: true
+        default: v0.1.0-preview.1
 
 permissions:
   contents: write
@@ -11,6 +16,7 @@ jobs:
     runs-on: macos-15
     env:
       GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: ${{ inputs.version }}
 
     steps:
       - name: Check out source
@@ -28,17 +34,16 @@ jobs:
           (cd build/release && shasum -a 256 -c FOH.dmg.sha256)
           codesign --verify --deep --strict build/release/FOH.xcarchive/Products/Applications/FOH.app
 
-      - name: Create or update rolling preview release
+      - name: Create or update numbered preview release
         run: |
-          if ! gh release view preview >/dev/null 2>&1; then
-            gh release create preview \
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" \
               --target "$GITHUB_SHA" \
-              --title "FOH Preview" \
+              --title "FOH ${RELEASE_TAG#v}" \
               --prerelease \
               --notes "Universal Apple Silicon and Intel test build. This preview is not Developer ID signed or notarized. Follow the README first-launch instructions and verify the published SHA-256 checksum."
           fi
-          gh release upload preview \
+          gh release upload "$RELEASE_TAG" \
             build/release/FOH.dmg \
             build/release/FOH.dmg.sha256 \
             --clobber
-
