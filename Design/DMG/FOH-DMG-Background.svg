@@ -1,28 +1,28 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="560" height="340" viewBox="0 0 560 340">
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="380" viewBox="0 0 560 380">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#171822"/>
-      <stop offset="1" stop-color="#242033"/>
+      <stop offset="0" stop-color="#1d1c1a"/>
+      <stop offset="1" stop-color="#292620"/>
     </linearGradient>
     <radialGradient id="glow">
-      <stop offset="0" stop-color="#8068ff" stop-opacity=".2"/>
-      <stop offset="1" stop-color="#8068ff" stop-opacity="0"/>
+      <stop offset="0" stop-color="#f07145" stop-opacity=".12"/>
+      <stop offset="1" stop-color="#f07145" stop-opacity="0"/>
     </radialGradient>
     <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
       <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000" flood-opacity=".28"/>
     </filter>
   </defs>
-  <rect width="560" height="340" rx="14" fill="url(#bg)"/>
-  <circle cx="280" cy="190" r="230" fill="url(#glow)"/>
+  <rect width="560" height="380" fill="url(#bg)"/>
+  <circle cx="280" cy="200" r="240" fill="url(#glow)"/>
   <text x="280" y="48" fill="#fff" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="24" font-weight="700" text-anchor="middle">Bring FOH onstage</text>
   <text x="280" y="74" fill="#aaa8b8" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" text-anchor="middle">Drag FOH into Applications. That’s the whole soundcheck.</text>
-  <g fill="none" stroke="#8c75ff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" filter="url(#shadow)">
-    <path d="M226 188h108"/>
-    <path d="m319 173 15 15-15 15"/>
+  <g fill="none" stroke="#f07145" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" filter="url(#shadow)">
+    <path d="M226 198h108"/>
+    <path d="m319 183 15 15-15 15"/>
   </g>
   <g fill="#f4f2fa" fill-opacity=".9" stroke="#fff" stroke-opacity=".16">
-    <rect x="98" y="260" width="94" height="27" rx="13.5"/>
-    <rect x="352" y="260" width="126" height="27" rx="13.5"/>
+    <rect x="98" y="270" width="94" height="27" rx="13.5"/>
+    <rect x="352" y="270" width="126" height="27" rx="13.5"/>
   </g>
-  <text x="280" y="330" fill="#777483" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" text-anchor="middle">Open source · Built by Right Fast Studio</text>
+  <text x="280" y="335" fill="#8f887d" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" text-anchor="middle">Open source · Built by Right Fast Studio</text>
 </svg>

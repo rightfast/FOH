@@ -36,8 +36,12 @@ struct ScenesView: View {
                 HStack {
                     TextField("New scene name", text: $newSceneName)
                         .textFieldStyle(.roundedBorder)
+                        .controlSize(.large)
                         .onSubmit(addScene)
-                    Button("Add Scene", action: addScene)
+                    Button(action: addScene) {
+                        Label("Add Scene", systemImage: "plus")
+                    }
+                        .controlSize(.large)
                         .disabled(newSceneName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
                 .frame(maxWidth: 480)
@@ -50,6 +54,7 @@ struct ScenesView: View {
 
     private func sceneCard(_ scene: AudioScene) -> some View {
         let isActive = appState.activeSceneID == scene.id
+        let isConfigured = scene.inputDeviceID != nil || scene.outputDeviceID != nil
         return VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Image(systemName: scene.symbolName)
@@ -74,13 +79,16 @@ struct ScenesView: View {
             devicePicker("Microphone", icon: "mic.fill", direction: .input, scene: scene)
             devicePicker("Listening", icon: "headphones", direction: .output, scene: scene)
 
-            Button(isActive ? "Scene Active" : "Activate Scene") {
+            Button {
                 appState.activateScene(scene.id)
+            } label: {
+                Text(isActive ? "Scene Active" : isConfigured ? "Activate \(scene.name)" : "Choose a device to activate")
+                    .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
+            .tint(FOHTheme.signal)
             .controlSize(.large)
-            .frame(maxWidth: .infinity)
-            .disabled(isActive)
+            .disabled(isActive || !isConfigured)
         }
         .padding(20)
         .background(FOHTheme.panel)
@@ -102,10 +110,10 @@ struct ScenesView: View {
             set: { appState.updateSceneDevice(scene.id, direction: direction, deviceID: $0) }
         )
         let choices = appState.priorities(for: direction)
-        return HStack {
+        return HStack(spacing: 12) {
             Label(title, systemImage: icon)
                 .foregroundStyle(.secondary)
-            Spacer()
+                .frame(width: FOHTheme.formLabelWidth, alignment: .leading)
             Picker(title, selection: selection) {
                 Text("Choose device").tag(String?.none)
                 ForEach(choices) { priority in
@@ -114,7 +122,8 @@ struct ScenesView: View {
                 }
             }
             .labelsHidden()
-            .frame(maxWidth: 190)
+            .controlSize(.large)
+            .frame(maxWidth: .infinity)
         }
     }
 

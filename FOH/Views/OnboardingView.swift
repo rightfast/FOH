@@ -30,14 +30,10 @@ struct OnboardingView: View {
 
     private var header: some View {
         HStack(spacing: 22) {
-            HStack(spacing: 9) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 5).fill(FOHTheme.signal)
-                    Image(systemName: "slider.horizontal.3").font(.system(size: 14, weight: .semibold)).foregroundStyle(.white)
-                }
-                .frame(width: 30, height: 30)
-                Text("FOH").font(.headline.weight(.bold))
-            }
+            Text("FOH")
+                .font(.headline.weight(.bold))
+                .foregroundStyle(FOHTheme.ink)
+                .accessibilityAddTraits(.isHeader)
             Spacer()
             HStack(spacing: 8) {
                 ForEach(steps.indices, id: \.self) { index in
@@ -135,7 +131,8 @@ struct OnboardingView: View {
                             }
                         }
                         .toggleStyle(.switch).disabled(!installed).opacity(installed ? 1 : 0.52)
-                        .padding(.horizontal, 14).frame(height: 54)
+                        .padding(.horizontal, 16)
+                        .frame(maxWidth: .infinity, minHeight: 54, alignment: .leading)
                         .background(FOHTheme.panel)
                         .overlay(alignment: .bottom) { FOHSectionRule() }
                     }
@@ -202,9 +199,12 @@ struct OnboardingView: View {
                     Text(title).font(.callout.weight(.semibold))
                     Text(detail).font(.caption).foregroundStyle(.secondary)
                 }
+                Spacer(minLength: 16)
             }
         }
-        .toggleStyle(.switch).padding(.horizontal, 16).frame(height: 62)
+        .toggleStyle(.switch)
+        .padding(.horizontal, 16)
+        .frame(maxWidth: .infinity, minHeight: FOHTheme.controlRowHeight, alignment: .leading)
         .background(FOHTheme.panel)
         .overlay { RoundedRectangle(cornerRadius: FOHTheme.panelRadius).stroke(FOHTheme.rule, lineWidth: 0.7) }
     }
@@ -215,7 +215,8 @@ struct OnboardingView: View {
             Text("\(count)").font(.headline.monospacedDigit())
             Text(label).font(.callout).foregroundStyle(.secondary)
         }
-        .padding(.horizontal, 14).frame(height: 38)
+        .padding(.horizontal, 14)
+        .frame(maxWidth: .infinity, minHeight: 38, alignment: .leading)
         .background(FOHTheme.signal.opacity(0.07), in: RoundedRectangle(cornerRadius: 5))
     }
 

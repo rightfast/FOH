@@ -15,6 +15,8 @@ enum FOHTheme {
 
     static let panelRadius: CGFloat = 7
     static let pageWidth: CGFloat = 920
+    static let formLabelWidth: CGFloat = 108
+    static let controlRowHeight: CGFloat = 62
 
     private static func adaptive(light: UInt32, dark: UInt32) -> Color {
         Color(nsColor: NSColor(name: nil) { appearance in
