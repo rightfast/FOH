@@ -36,6 +36,9 @@ struct InputActivityView: View {
         .onChange(of: appState.defaultInputID) {
             monitor.restartForInputDeviceChange()
         }
+        .onChange(of: monitor.isMonitoring) {
+            appState.refresh()
+        }
     }
 
     private var waveform: some View {
