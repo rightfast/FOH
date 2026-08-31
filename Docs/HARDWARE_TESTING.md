@@ -37,3 +37,15 @@ Core Audio object IDs, and event messages.
 - Event ordering and duplicate suppression
 - Failures are visible without interrupting unrelated audio
 - Export contains capability data but no raw device identity
+
+## Verified baseline
+
+### 2026-08-30 — Apple Silicon, macOS 26.5.2
+
+- Switched the default output from the built-in endpoint to an HDMI endpoint
+  through FOH.
+- Independently confirmed the HDMI endpoint through macOS `system_profiler`.
+- Restored the built-in endpoint through FOH and independently confirmed it.
+- FOH recorded one selection and one observed-default-change event in each
+  direction, with no duplicate or error events.
+- The input endpoint remained unchanged throughout the output round trip.
