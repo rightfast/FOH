@@ -1,6 +1,8 @@
 @preconcurrency import AVFoundation
 import Foundation
 
+typealias MicrophonePermissionRequester = @Sendable (@escaping @Sendable (Bool) -> Void) -> Void
+
 private final class WeakMicrophoneMonitorBox: @unchecked Sendable {
     weak var value: MicrophoneMonitor?
 
@@ -25,12 +27,18 @@ final class MicrophoneMonitor: ObservableObject, @unchecked Sendable {
 
     private let engine = AVAudioEngine()
     private let defaults: UserDefaults
+    private let permissionRequester: MicrophonePermissionRequester
     private var visibleConsumerCount = 0
 
-    init(defaults: UserDefaults = .standard) {
+    init(
+        defaults: UserDefaults = .standard,
+        initialAuthorization: Authorization? = nil,
+        permissionRequester: @escaping MicrophonePermissionRequester = MicrophoneMonitor.requestSystemPermission
+    ) {
         self.defaults = defaults
+        self.permissionRequester = permissionRequester
         isEnabled = defaults.bool(forKey: "inputActivityEnabled")
-        authorization = Self.currentAuthorization
+        authorization = initialAuthorization ?? Self.currentAuthorization
     }
 
     func enable() {
@@ -38,13 +46,7 @@ final class MicrophoneMonitor: ObservableObject, @unchecked Sendable {
         case .authorized:
             setEnabled(true)
         case .notDetermined:
-            AVCaptureDevice.requestAccess(for: .audio) { [weak self] granted in
-                Task { @MainActor in
-                    guard let self else { return }
-                    self.authorization = granted ? .authorized : .denied
-                    if granted { self.setEnabled(true) }
-                }
-            }
+            Self.requestPermission(using: permissionRequester, for: self)
         case .denied:
             break
         }
@@ -149,6 +151,29 @@ final class MicrophoneMonitor: ObservableObject, @unchecked Sendable {
         case .notDetermined: .notDetermined
         @unknown default: .denied
         }
+    }
+
+    /// TCC invokes its reply on a background queue. Constructing this callback
+    /// outside MainActor isolation prevents Swift 6 from trapping before the
+    /// callback can explicitly hop back to the main actor.
+    private nonisolated static func requestPermission(
+        using requester: @escaping MicrophonePermissionRequester,
+        for monitor: MicrophoneMonitor
+    ) {
+        let monitorBox = WeakMicrophoneMonitorBox(monitor)
+        requester { granted in
+            Task { @MainActor in
+                guard let monitor = monitorBox.value else { return }
+                monitor.authorization = granted ? .authorized : .denied
+                if granted { monitor.setEnabled(true) }
+            }
+        }
+    }
+
+    nonisolated static func requestSystemPermission(
+        _ completion: @escaping @Sendable (Bool) -> Void
+    ) {
+        AVCaptureDevice.requestAccess(for: .audio, completionHandler: completion)
     }
 
     private func setEnabled(_ enabled: Bool) {
