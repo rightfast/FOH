@@ -6,7 +6,7 @@ on:
       version:
         description: Test build version tag
         required: true
-        default: v0.2.0-rc.1
+        default: v0.2.0-rc.3
 
 permissions:
   contents: write
@@ -56,7 +56,7 @@ jobs:
               --target "$GITHUB_SHA" \
               --title "$release_title" \
               --latest \
-              --notes "Release candidate for hands-on testing. Adds Scenes, guided Call Check, first-run setup, automation pause and undo, clear rule precedence, menu-bar status, Launch at Login, and wake/reconnect reliability. Universal for Apple Silicon and Intel. This build is not Developer ID signed or notarized; follow the README first-launch instructions."
+              --notes "Release candidate for hands-on testing. Introduces the Signal Desk design system across onboarding, the menu bar, Stage, Devices, Scenes, Automations, History, Diagnostics, Settings, and Call Check. The new route-map Stage makes active audio paths easier to understand, uses semantic status colors, and replaces the previous card-heavy interface with a calmer native Mac layout. Universal for Apple Silicon and Intel. This build is not Developer ID signed or notarized; follow the README first-launch instructions."
           else
             gh release edit "$RELEASE_TAG" \
               --title "$release_title" \
