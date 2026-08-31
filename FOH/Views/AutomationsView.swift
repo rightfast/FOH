@@ -22,16 +22,16 @@ struct AutomationsView: View {
                     .controlSize(.large)
                 }
 
+                AutomationReadinessCard()
+
                 BrowserMeetingRuleCard()
 
-                Text("Native applications")
-                    .font(.headline)
-                    .foregroundStyle(.secondary)
+                if !availableRules.isEmpty {
+                    ruleSection("Available on this Mac", rules: availableRules)
+                }
 
-                LazyVStack(spacing: 14) {
-                    ForEach(appState.applicationRules) { rule in
-                        ApplicationRuleCard(ruleID: rule.id)
-                    }
+                if !unavailableRules.isEmpty {
+                    ruleSection("Other supported apps", rules: unavailableRules)
                 }
 
                 HStack(alignment: .top, spacing: 12) {
@@ -68,11 +68,80 @@ struct AutomationsView: View {
         }
     }
 
+    private var availableRules: [ApplicationAudioRule] {
+        appState.applicationRules.filter(appState.isApplicationInstalled)
+    }
+
+    private var unavailableRules: [ApplicationAudioRule] {
+        appState.applicationRules.filter { !appState.isApplicationInstalled($0) }
+    }
+
+    private func ruleSection(_ title: String, rules: [ApplicationAudioRule]) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title)
+                .font(.headline)
+                .foregroundStyle(.secondary)
+            LazyVStack(spacing: 12) {
+                ForEach(rules) { rule in
+                    ApplicationRuleCard(ruleID: rule.id)
+                }
+            }
+        }
+    }
+
     private var errorBinding: Binding<Bool> {
         Binding(
             get: { appState.errorMessage != nil },
             set: { if !$0 { appState.errorMessage = nil } }
         )
+    }
+}
+
+private struct AutomationReadinessCard: View {
+    @EnvironmentObject private var appState: AppState
+
+    private var enabledNativeCount: Int {
+        appState.applicationRules.filter { $0.isEnabled && appState.isApplicationInstalled($0) }.count
+    }
+
+    private var enabledCount: Int {
+        enabledNativeCount + (appState.browserRule.isEnabled ? 1 : 0)
+    }
+
+    private var isActive: Bool {
+        appState.activeMeetingDomain != nil || appState.applicationRules.contains {
+            $0.isEnabled && appState.isApplicationRunning($0)
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: 14) {
+            Image(systemName: isActive ? "waveform.circle.fill" : enabledCount > 0 ? "checkmark.circle.fill" : "circle.dashed")
+                .font(.title2)
+                .foregroundStyle(isActive ? Color.green : enabledCount > 0 ? Color.accentColor : Color.secondary)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(isActive ? "FOH is managing your audio" : enabledCount > 0 ? "FOH is ready for your next call" : "Choose where FOH should step in")
+                    .font(.headline)
+                Text(enabledCount == 0 ? "Enable a browser or app rule below to get started." : "\(enabledCount) automation\(enabledCount == 1 ? "" : "s") enabled · FOH only changes devices when a rule matches.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            if isActive {
+                Text("ACTIVE")
+                    .font(.caption2.bold())
+                    .foregroundStyle(.green)
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 5)
+                    .background(Color.green.opacity(0.12), in: Capsule())
+            }
+        }
+        .padding(18)
+        .background(Color.accentColor.opacity(0.07), in: RoundedRectangle(cornerRadius: 15))
+        .overlay {
+            RoundedRectangle(cornerRadius: 15)
+                .strokeBorder(Color.accentColor.opacity(0.14))
+        }
     }
 }
 
@@ -109,72 +178,71 @@ private struct BrowserMeetingRuleCard: View {
                     .foregroundStyle(.orange)
             }
 
-            Divider()
+            if appState.browserRule.isEnabled {
+                Divider()
 
-            Grid(alignment: .leading, horizontalSpacing: 18, verticalSpacing: 14) {
-                GridRow {
-                    Text("Browsers")
+                Grid(alignment: .leading, horizontalSpacing: 18, verticalSpacing: 14) {
+                    GridRow {
+                        Text("Browsers")
+                            .font(.headline)
+                        HStack(spacing: 16) {
+                            ForEach(SupportedBrowser.all) { browser in
+                                let installed = appState.isBrowserInstalled(browser)
+                                Toggle(browser.name, isOn: browserBinding(browser.id))
+                                    .toggleStyle(.checkbox)
+                                    .disabled(!installed || !appState.browserRule.isEnabled)
+                                    .opacity(installed ? 1 : 0.5)
+                                    .help(installed ? browser.name : "\(browser.name) is not installed")
+                            }
+                        }
+                    }
+                    GridRow {
+                        Label("Microphone", systemImage: "mic.fill")
+                        browserDevicePicker(direction: .input)
+                    }
+                    GridRow {
+                        Label("Listening", systemImage: "headphones")
+                        browserDevicePicker(direction: .output)
+                    }
+                }
+
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Meeting domains")
                         .font(.headline)
-                    HStack(spacing: 16) {
-                        ForEach(SupportedBrowser.all) { browser in
-                            let installed = appState.isBrowserInstalled(browser)
-                            Toggle(browser.name, isOn: browserBinding(browser.id))
-                                .toggleStyle(.checkbox)
-                                .disabled(!installed || !appState.browserRule.isEnabled)
-                                .opacity(installed ? 1 : 0.5)
-                                .help(installed ? browser.name : "\(browser.name) is not installed")
+                    ForEach(appState.browserRule.domains, id: \.self) { domain in
+                        HStack {
+                            Image(systemName: "globe.americas.fill")
+                                .foregroundStyle(.secondary)
+                            Text(domain)
+                                .font(.callout.monospaced())
+                            Spacer()
+                            Button("Remove \(domain)", systemImage: "xmark") {
+                                appState.removeBrowserDomain(domain)
+                            }
+                            .labelStyle(.iconOnly)
+                            .buttonStyle(.plain)
                         }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 9))
                     }
-                }
-                GridRow {
-                    Label("Microphone", systemImage: "mic.fill")
-                    browserDevicePicker(direction: .input)
-                }
-                GridRow {
-                    Label("Listening", systemImage: "headphones")
-                    browserDevicePicker(direction: .output)
-                }
-            }
-            .disabled(!appState.browserRule.isEnabled)
 
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Meeting domains")
-                    .font(.headline)
-                ForEach(appState.browserRule.domains, id: \.self) { domain in
                     HStack {
-                        Image(systemName: "globe.americas.fill")
-                            .foregroundStyle(.secondary)
-                        Text(domain)
-                            .font(.callout.monospaced())
-                        Spacer()
-                        Button("Remove \(domain)", systemImage: "xmark") {
-                            appState.removeBrowserDomain(domain)
-                        }
-                        .labelStyle(.iconOnly)
-                        .buttonStyle(.plain)
+                        TextField("Add a domain, such as meet.example.com", text: $newDomain)
+                            .textFieldStyle(.roundedBorder)
+                            .onSubmit(addDomain)
+                        Button("Add", action: addDomain)
+                            .disabled(newDomain.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 9))
                 }
 
                 HStack {
-                    TextField("Add a domain, such as meet.example.com", text: $newDomain)
-                        .textFieldStyle(.roundedBorder)
-                        .onSubmit(addDomain)
-                    Button("Add", action: addDomain)
-                        .disabled(newDomain.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    Label("Only the frontmost tab is checked. URLs are never saved.", systemImage: "hand.raised.fill")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Button("Test rule now") { appState.testBrowserRule() }
                 }
-            }
-            .disabled(!appState.browserRule.isEnabled)
-
-            HStack {
-                Label("Only the frontmost tab is checked. URLs are never saved.", systemImage: "hand.raised.fill")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Spacer()
-                Button("Test rule now") { appState.testBrowserRule() }
-                    .disabled(!appState.browserRule.isEnabled)
             }
         }
         .padding(22)
@@ -253,32 +321,36 @@ private struct ApplicationRuleCard: View {
                         .disabled(!installed)
                 }
 
-                Divider()
+                if installed && rule.isEnabled {
+                    Divider()
 
-                Grid(alignment: .leading, horizontalSpacing: 18, verticalSpacing: 16) {
-                    GridRow {
-                        Label("Microphone", systemImage: "mic.fill")
-                        devicePicker(direction: .input, rule: rule)
+                    Grid(alignment: .leading, horizontalSpacing: 18, verticalSpacing: 16) {
+                        GridRow {
+                            Label("Microphone", systemImage: "mic.fill")
+                            devicePicker(direction: .input, rule: rule)
+                        }
+                        GridRow {
+                            Label("Listening", systemImage: "headphones")
+                            devicePicker(direction: .output, rule: rule)
+                        }
                     }
-                    GridRow {
-                        Label("Listening", systemImage: "headphones")
-                        devicePicker(direction: .output, rule: rule)
-                    }
-                }
-                .disabled(!installed || !rule.isEnabled)
 
-                HStack {
-                    Text(installed ? "Runs when \(rule.displayName) launches" : "Install \(rule.displayName) to enable this preset")
+                    HStack {
+                        Text("Runs when \(rule.displayName) launches")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Button("Test rule now") {
+                            appState.testApplicationRule(rule.id)
+                        }
+                    }
+                } else if !installed {
+                    Text("Install \(rule.displayName) to make this preset available.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    Spacer()
-                    Button("Test rule now") {
-                        appState.testApplicationRule(rule.id)
-                    }
-                    .disabled(!installed || !rule.isEnabled)
                 }
             }
-            .padding(22)
+            .padding(installed && rule.isEnabled ? 22 : 16)
             .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18))
             .opacity(installed ? 1 : 0.62)
         }
