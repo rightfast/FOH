@@ -36,12 +36,20 @@ jobs:
 
       - name: Create or update numbered preview release
         run: |
+          release_name="${RELEASE_TAG#v}"
+          release_name="${release_name/-preview./ Preview }"
+          release_title="FOH $release_name"
           if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
             gh release create "$RELEASE_TAG" \
               --target "$GITHUB_SHA" \
-              --title "FOH ${RELEASE_TAG#v}" \
-              --prerelease \
+              --title "$release_title" \
+              --latest \
               --notes "Universal Apple Silicon and Intel test build. This preview is not Developer ID signed or notarized. Follow the README first-launch instructions and verify the published SHA-256 checksum."
+          else
+            gh release edit "$RELEASE_TAG" \
+              --title "$release_title" \
+              --prerelease=false \
+              --latest
           fi
           gh release upload "$RELEASE_TAG" \
             build/release/FOH.dmg \
