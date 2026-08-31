@@ -1,0 +1,473 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0F518E228CF9ED94656C4C7C /* AudioTransportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87A155E8C5FAC862E0AE7D43 /* AudioTransportTests.swift */; };
+		1DC35C0E716A0A85E6E89A0C /* DeviceRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF5A485CBDF61184AC74DBBB /* DeviceRow.swift */; };
+		1E81AA8782C916243EE4EADD /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A91CACA95B8289830372CDC4 /* MenuBarView.swift */; };
+		3B9B62454E9D44C9537DCCCC /* StageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1014DB4BCFCE4D85103AA58 /* StageView.swift */; };
+		43C0F948033485A25E81917F /* FOHApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8FEA8F40FE8EC36E2E804D7 /* FOHApp.swift */; };
+		65A8647F953A5305F32A5BBF /* CoreAudioError.swift in Sources */ = {isa = PBXBuildFile; fileRef = D98A5C1E1F878AE9143DF30E /* CoreAudioError.swift */; };
+		9732B9C3AC1B6BFC3416F277 /* AudioDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14AE62CA8DA75D4B1343890B /* AudioDevice.swift */; };
+		CA2A26F11C3B2576C16929B0 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 414DF5D2DE57365869B037C2 /* AppState.swift */; };
+		CE8D942C3ED95059456F3D65 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F53DD5CBDB54056E65C49E3 /* SettingsView.swift */; };
+		D0AB321EBF0FC974624B4744 /* AudioHardwareService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A36E42E11D1F4C193CFD9476 /* AudioHardwareService.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		8567767AEE1943C004064071 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B55144A04092A5F22DEE02E5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 14B1965042A901C3CF55BE10;
+			remoteInfo = FOH;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		14AE62CA8DA75D4B1343890B /* AudioDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDevice.swift; sourceTree = "<group>"; };
+		2ABC2676156E7FDD3C81EA09 /* FOH.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FOH.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		414DF5D2DE57365869B037C2 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		48831CE27FFF67B714C2F8A5 /* FOHTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FOHTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		87A155E8C5FAC862E0AE7D43 /* AudioTransportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioTransportTests.swift; sourceTree = "<group>"; };
+		8F53DD5CBDB54056E65C49E3 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		A36E42E11D1F4C193CFD9476 /* AudioHardwareService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioHardwareService.swift; sourceTree = "<group>"; };
+		A91CACA95B8289830372CDC4 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
+		C4B4D67479272D1F223A3E02 /* FOH.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FOH.entitlements; sourceTree = "<group>"; };
+		D98A5C1E1F878AE9143DF30E /* CoreAudioError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreAudioError.swift; sourceTree = "<group>"; };
+		E8FEA8F40FE8EC36E2E804D7 /* FOHApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FOHApp.swift; sourceTree = "<group>"; };
+		EF5A485CBDF61184AC74DBBB /* DeviceRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceRow.swift; sourceTree = "<group>"; };
+		F1014DB4BCFCE4D85103AA58 /* StageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		10452DD0CCFAC12240D342B0 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				A36E42E11D1F4C193CFD9476 /* AudioHardwareService.swift */,
+				D98A5C1E1F878AE9143DF30E /* CoreAudioError.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		10CE2EA4FB79AE6A13C91015 /* FOHTests */ = {
+			isa = PBXGroup;
+			children = (
+				87A155E8C5FAC862E0AE7D43 /* AudioTransportTests.swift */,
+			);
+			path = FOHTests;
+			sourceTree = "<group>";
+		};
+		22107C67170CFC5BB62B896E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				2ABC2676156E7FDD3C81EA09 /* FOH.app */,
+				48831CE27FFF67B714C2F8A5 /* FOHTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		4FAC4911C8DF8C8B8C9A7CBC /* App */ = {
+			isa = PBXGroup;
+			children = (
+				414DF5D2DE57365869B037C2 /* AppState.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		52AE391E4C4E888BA2E120B0 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				EF5A485CBDF61184AC74DBBB /* DeviceRow.swift */,
+				A91CACA95B8289830372CDC4 /* MenuBarView.swift */,
+				8F53DD5CBDB54056E65C49E3 /* SettingsView.swift */,
+				F1014DB4BCFCE4D85103AA58 /* StageView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		6EDDCBAB562B24E4F1413DDA /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				14AE62CA8DA75D4B1343890B /* AudioDevice.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		79F2ED6F28273E2219C4F67A = {
+			isa = PBXGroup;
+			children = (
+				E2D4017748F7946A356DA0C2 /* FOH */,
+				10CE2EA4FB79AE6A13C91015 /* FOHTests */,
+				22107C67170CFC5BB62B896E /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		E2D4017748F7946A356DA0C2 /* FOH */ = {
+			isa = PBXGroup;
+			children = (
+				C4B4D67479272D1F223A3E02 /* FOH.entitlements */,
+				E8FEA8F40FE8EC36E2E804D7 /* FOHApp.swift */,
+				4FAC4911C8DF8C8B8C9A7CBC /* App */,
+				6EDDCBAB562B24E4F1413DDA /* Models */,
+				10452DD0CCFAC12240D342B0 /* Services */,
+				52AE391E4C4E888BA2E120B0 /* Views */,
+			);
+			path = FOH;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		14B1965042A901C3CF55BE10 /* FOH */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F4F8F9B100B82CF25ED051F0 /* Build configuration list for PBXNativeTarget "FOH" */;
+			buildPhases = (
+				A0EFD42A5730200E284DADC0 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FOH;
+			packageProductDependencies = (
+			);
+			productName = FOH;
+			productReference = 2ABC2676156E7FDD3C81EA09 /* FOH.app */;
+			productType = "com.apple.product-type.application";
+		};
+		A60E665E4DF3A00164F3DDEE /* FOHTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 338C4169E5CFF65EE7844D43 /* Build configuration list for PBXNativeTarget "FOHTests" */;
+			buildPhases = (
+				5C6F8CBE734EC4BB585065B7 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				84F1FAF62569290F30A9D73F /* PBXTargetDependency */,
+			);
+			name = FOHTests;
+			packageProductDependencies = (
+			);
+			productName = FOHTests;
+			productReference = 48831CE27FFF67B714C2F8A5 /* FOHTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		B55144A04092A5F22DEE02E5 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					14B1965042A901C3CF55BE10 = {
+						ProvisioningStyle = Automatic;
+					};
+					A60E665E4DF3A00164F3DDEE = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = CDCFDDB586A3329E242C72AE /* Build configuration list for PBXProject "FOH" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 79F2ED6F28273E2219C4F67A;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 22107C67170CFC5BB62B896E /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				14B1965042A901C3CF55BE10 /* FOH */,
+				A60E665E4DF3A00164F3DDEE /* FOHTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		5C6F8CBE734EC4BB585065B7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0F518E228CF9ED94656C4C7C /* AudioTransportTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A0EFD42A5730200E284DADC0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA2A26F11C3B2576C16929B0 /* AppState.swift in Sources */,
+				9732B9C3AC1B6BFC3416F277 /* AudioDevice.swift in Sources */,
+				D0AB321EBF0FC974624B4744 /* AudioHardwareService.swift in Sources */,
+				65A8647F953A5305F32A5BBF /* CoreAudioError.swift in Sources */,
+				1DC35C0E716A0A85E6E89A0C /* DeviceRow.swift in Sources */,
+				43C0F948033485A25E81917F /* FOHApp.swift in Sources */,
+				1E81AA8782C916243EE4EADD /* MenuBarView.swift in Sources */,
+				CE8D942C3ED95059456F3D65 /* SettingsView.swift in Sources */,
+				3B9B62454E9D44C9537DCCCC /* StageView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		84F1FAF62569290F30A9D73F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 14B1965042A901C3CF55BE10 /* FOH */;
+			targetProxy = 8567767AEE1943C004064071 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		4CA63201BC2EC8EA81BF3FEF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		4F74A38B0ECCD6D6ADF2D47B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		81DFABEDEE6E20BD959FDD6E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = FOH/FOH.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = FOH;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 Right Fast Studio";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = studio.rightfast.foh;
+				PRODUCT_NAME = FOH;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		849B214721FB73B949030373 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = FOH/FOH.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = FOH;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 Right Fast Studio";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = studio.rightfast.foh;
+				PRODUCT_NAME = FOH;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		DDAA0A79A3647F33CB54A16E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = studio.rightfast.foh.tests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FOH.app/Contents/MacOS/FOH";
+			};
+			name = Release;
+		};
+		F7AD3210A85F228D20E304B3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = studio.rightfast.foh.tests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FOH.app/Contents/MacOS/FOH";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		338C4169E5CFF65EE7844D43 /* Build configuration list for PBXNativeTarget "FOHTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F7AD3210A85F228D20E304B3 /* Debug */,
+				DDAA0A79A3647F33CB54A16E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		CDCFDDB586A3329E242C72AE /* Build configuration list for PBXProject "FOH" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4CA63201BC2EC8EA81BF3FEF /* Debug */,
+				4F74A38B0ECCD6D6ADF2D47B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		F4F8F9B100B82CF25ED051F0 /* Build configuration list for PBXNativeTarget "FOH" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				849B214721FB73B949030373 /* Debug */,
+				81DFABEDEE6E20BD959FDD6E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = B55144A04092A5F22DEE02E5 /* Project object */;
+}
