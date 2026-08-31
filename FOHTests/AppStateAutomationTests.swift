@@ -166,9 +166,11 @@ final class AppStateAutomationTests: XCTestCase {
             applicationMonitor: FakeApplicationMonitor(),
             browserMonitor: browser
         )
+        XCTAssertEqual(browser.startCount, 0)
         state.setBrowserDevice(input.id, for: .input)
         state.setBrowserDevice(output.id, for: .output)
         state.setBrowserAutomationEnabled(true)
+        XCTAssertEqual(browser.startCount, 1)
 
         browser.emit(browserID: "com.google.Chrome", url: "https://meet.google.com/abc-defg-hij")
 
@@ -201,8 +203,11 @@ final class AppStateAutomationTests: XCTestCase {
 @MainActor
 private final class FakeBrowserMonitor: BrowserMonitoring {
     var onChange: ((BrowserPageSnapshot) -> Void)?
+    private(set) var startCount = 0
+    private(set) var stopCount = 0
 
-    func startObserving() {}
+    func startObserving() { startCount += 1 }
+    func stopObserving() { stopCount += 1 }
     func checkNow() {}
 
     func emit(browserID: String, url: String) {

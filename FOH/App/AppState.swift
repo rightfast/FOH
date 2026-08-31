@@ -1,5 +1,6 @@
 import CoreAudio
 import Foundation
+import OSLog
 
 @MainActor
 final class AppState: ObservableObject {
@@ -33,6 +34,7 @@ final class AppState: ObservableObject {
     private let defaults: UserDefaults
     private let applicationMonitor: any ApplicationMonitoring
     private let browserMonitor: any BrowserMonitoring
+    private let logger = Logger(subsystem: "studio.rightfast.foh", category: "Automation")
     private var refreshTask: Task<Void, Never>?
     private var noticeTask: Task<Void, Never>?
 
@@ -51,6 +53,11 @@ final class AppState: ObservableObject {
         browserRule = Self.loadBrowserRule(from: defaults)
         automaticSwitching = defaults.bool(forKey: Keys.automaticSwitching)
         restoresPreferredDevice = defaults.object(forKey: Keys.restoresPreferredDevice) as? Bool ?? true
+#if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--enable-browser-test") {
+            browserRule.isEnabled = true
+        }
+#endif
         hardware.onChange = { [weak self] in
             Task { @MainActor in self?.scheduleRefresh() }
         }
@@ -73,7 +80,7 @@ final class AppState: ObservableObject {
         browserMonitor.onChange = { [weak self] snapshot in
             self?.browserPageDidChange(snapshot)
         }
-        browserMonitor.startObserving()
+        if browserRule.isEnabled { browserMonitor.startObserving() }
     }
 
     var inputDevices: [AudioDevice] { devices.filter { $0.direction == .input } }
@@ -219,7 +226,11 @@ final class AppState: ObservableObject {
         activeMeetingDomain = nil
         browserPermissionDenied = false
         record(.applicationRuleChanged, "Browser meeting automation \(isEnabled ? "enabled" : "disabled").")
-        if isEnabled { browserMonitor.checkNow() }
+        if isEnabled {
+            browserMonitor.startObserving()
+        } else {
+            browserMonitor.stopObserving()
+        }
     }
 
     func setBrowserEnabled(_ bundleIdentifier: String, isEnabled: Bool) {
@@ -448,6 +459,7 @@ final class AppState: ObservableObject {
         }
         guard activeMeetingDomain != domain else { return }
         activeMeetingDomain = domain
+        logger.info("Browser meeting rule matched for domain: \(domain, privacy: .public)")
         applyBrowserRule(trigger: "A meeting opened on \(domain)")
     }
 
@@ -497,6 +509,7 @@ final class AppState: ObservableObject {
         }
         let detail = "\(trigger): \(appliedNames.joined(separator: ", "))."
         record(.applicationRuleApplied, detail)
+        logger.info("Audio rule applied: \(rule.bundleIdentifier, privacy: .public)")
         showNotice(title: "\(rule.displayName) audio is ready", detail: detail)
     }
 

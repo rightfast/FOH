@@ -1,5 +1,6 @@
 import AppKit
 import Foundation
+import OSLog
 
 struct BrowserPageSnapshot: Equatable, Sendable {
     let browserBundleIdentifier: String?
@@ -13,6 +14,7 @@ struct BrowserPageSnapshot: Equatable, Sendable {
 protocol BrowserMonitoring: AnyObject {
     var onChange: ((BrowserPageSnapshot) -> Void)? { get set }
     func startObserving()
+    func stopObserving()
     func checkNow()
 }
 
@@ -21,6 +23,7 @@ final class BrowserMonitor: BrowserMonitoring {
     var onChange: ((BrowserPageSnapshot) -> Void)?
 
     private let workspace: NSWorkspace
+    private let logger = Logger(subsystem: "studio.rightfast.foh", category: "BrowserMonitor")
     private var timer: Timer?
     private var lastSnapshot = BrowserPageSnapshot.inactive
 
@@ -30,14 +33,24 @@ final class BrowserMonitor: BrowserMonitoring {
 
     func startObserving() {
         guard timer == nil else { return }
+        logger.debug("Browser monitoring started")
         timer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.checkNow() }
         }
         checkNow()
     }
 
+    func stopObserving() {
+        timer?.invalidate()
+        timer = nil
+        logger.debug("Browser monitoring stopped")
+        publish(.inactive)
+    }
+
     func checkNow() {
-        guard let bundleIdentifier = workspace.frontmostApplication?.bundleIdentifier,
+        let bundleIdentifier = workspace.frontmostApplication?.bundleIdentifier
+        logger.debug("Frontmost application: \(bundleIdentifier ?? "none", privacy: .public)")
+        guard let bundleIdentifier,
               let browser = SupportedBrowser.all.first(where: { $0.id == bundleIdentifier }) else {
             publish(.inactive)
             return
@@ -46,6 +59,9 @@ final class BrowserMonitor: BrowserMonitoring {
         var error: NSDictionary?
         let result = NSAppleScript(source: script(for: browser))?.executeAndReturnError(&error)
         let errorNumber = error?[NSAppleScript.errorNumber] as? Int
+        if let errorNumber {
+            logger.error("Browser AppleScript failed with code \(errorNumber, privacy: .public)")
+        }
         let url = result?.stringValue.flatMap(URL.init(string:))
         publish(BrowserPageSnapshot(
             browserBundleIdentifier: bundleIdentifier,
