@@ -107,6 +107,7 @@ final class AudioHardwareService: AudioHardwareProviding, @unchecked Sendable {
     private func makeDevice(objectID: AudioObjectID, direction: AudioDirection) -> AudioDevice? {
         let scope = scope(for: direction)
         guard hasStreams(objectID: objectID, scope: scope),
+              !isPrivateDevice(objectID: objectID),
               let uid = try? stringProperty(
                 objectID: objectID,
                 selector: kAudioDevicePropertyDeviceUID,
@@ -177,6 +178,24 @@ final class AudioHardwareService: AudioHardwareProviding, @unchecked Sendable {
             volume: volume,
             isMuted: muteValue.map { $0 != 0 }
         )
+    }
+
+    private func isPrivateDevice(objectID: AudioObjectID) -> Bool {
+        let isHidden: UInt32 = (try? scalarProperty(
+            objectID: objectID,
+            selector: kAudioDevicePropertyIsHidden,
+            scope: kAudioObjectPropertyScopeGlobal
+        )) ?? 0
+        if isHidden != 0 { return true }
+
+        // Core Audio may briefly expose this implementation detail while an
+        // app opens the default input and output. It is not user hardware.
+        let name = try? stringProperty(
+            objectID: objectID,
+            selector: kAudioObjectPropertyName,
+            scope: kAudioObjectPropertyScopeGlobal
+        )
+        return name?.hasPrefix("CA Default Device Aggregate") == true
     }
 
     private func hasStreams(objectID: AudioObjectID, scope: AudioObjectPropertyScope) -> Bool {

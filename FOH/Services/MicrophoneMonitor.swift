@@ -11,15 +11,41 @@ private final class WeakMicrophoneMonitorBox: @unchecked Sendable {
     }
 }
 
+/// Coalesces the much faster audio callback cadence into one peak per display frame.
+private final class MicrophoneLevelAccumulator: @unchecked Sendable {
+    private let lock = NSLock()
+    private var peak = 0.0
+
+    func push(_ level: Double) {
+        lock.lock()
+        peak = max(peak, level)
+        lock.unlock()
+    }
+
+    func consumePeak() -> Double {
+        lock.lock()
+        defer { lock.unlock() }
+        let value = peak
+        peak = 0
+        return value
+    }
+}
+
 @MainActor
 final class MicrophoneMonitor: ObservableObject, @unchecked Sendable {
+    private static let sampleFloor = 0.04
+    private static let sampleCount = 28
+    private static let displayFrameDuration = Duration.milliseconds(16)
+    private nonisolated static let attack = 0.58
+    private nonisolated static let release = 0.14
+
     enum Authorization: Equatable {
         case notDetermined
         case denied
         case authorized
     }
 
-    @Published private(set) var samples: [Double] = Array(repeating: 0.04, count: 28)
+    @Published private(set) var samples: [Double] = Array(repeating: sampleFloor, count: sampleCount)
     @Published private(set) var isMonitoring = false
     @Published private(set) var authorization: Authorization
     @Published private(set) var errorMessage: String?
@@ -28,7 +54,10 @@ final class MicrophoneMonitor: ObservableObject, @unchecked Sendable {
     private let engine = AVAudioEngine()
     private let defaults: UserDefaults
     private let permissionRequester: MicrophonePermissionRequester
+    private let levelAccumulator = MicrophoneLevelAccumulator()
     private var visibleConsumerCount = 0
+    private var displayTask: Task<Void, Never>?
+    private var displayedLevel = sampleFloor
 
     init(
         defaults: UserDefaults = .standard,
@@ -66,12 +95,6 @@ final class MicrophoneMonitor: ObservableObject, @unchecked Sendable {
         if visibleConsumerCount == 0 { stop() }
     }
 
-    func restartForInputDeviceChange() {
-        guard isMonitoring else { return }
-        stop()
-        if visibleConsumerCount > 0 { start() }
-    }
-
     func start() {
         guard !isMonitoring,
               isEnabled,
@@ -91,6 +114,7 @@ final class MicrophoneMonitor: ObservableObject, @unchecked Sendable {
             try engine.start()
             isMonitoring = true
             errorMessage = nil
+            startDisplayLoop()
         } catch {
             inputNode.removeTap(onBus: 0)
             errorMessage = error.localizedDescription
@@ -100,10 +124,13 @@ final class MicrophoneMonitor: ObservableObject, @unchecked Sendable {
 
     func stop() {
         guard isMonitoring else { return }
+        displayTask?.cancel()
+        displayTask = nil
         engine.inputNode.removeTap(onBus: 0)
         engine.stop()
         isMonitoring = false
-        samples = Array(repeating: 0.04, count: samples.count)
+        displayedLevel = Self.sampleFloor
+        samples = Array(repeating: Self.sampleFloor, count: Self.sampleCount)
     }
 
     nonisolated static func normalizedLevel(samples: [Float]) -> Double {
@@ -140,8 +167,13 @@ final class MicrophoneMonitor: ObservableObject, @unchecked Sendable {
         let monitorBox = WeakMicrophoneMonitorBox(monitor)
         return { buffer, _ in
             let level = normalizedLevel(buffer: buffer)
-            Task { @MainActor in monitorBox.value?.append(level) }
+            monitorBox.value?.levelAccumulator.push(level)
         }
+    }
+
+    nonisolated static func smoothedLevel(previous: Double, target: Double) -> Double {
+        let coefficient = target > previous ? attack : release
+        return previous + (target - previous) * coefficient
     }
 
     private static var currentAuthorization: Authorization {
@@ -186,8 +218,21 @@ final class MicrophoneMonitor: ObservableObject, @unchecked Sendable {
         }
     }
 
+    private func startDisplayLoop() {
+        displayTask?.cancel()
+        displayTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: Self.displayFrameDuration)
+                guard !Task.isCancelled, let self else { return }
+                let target = self.levelAccumulator.consumePeak()
+                self.displayedLevel = Self.smoothedLevel(previous: self.displayedLevel, target: target)
+                self.append(self.displayedLevel)
+            }
+        }
+    }
+
     private func append(_ level: Double) {
         samples.removeFirst()
-        samples.append(max(0.04, level))
+        samples.append(max(Self.sampleFloor, level))
     }
 }

@@ -6,7 +6,7 @@ on:
       version:
         description: Test build version tag
         required: true
-        default: v0.2.0-rc.5
+        default: v0.2.0-rc.6
 
 permissions:
   contents: write
@@ -56,7 +56,7 @@ jobs:
               --target "$GITHUB_SHA" \
               --title "$release_title" \
               --latest \
-              --notes "Release candidate for hands-on testing. Fixes a Swift 6 actor-isolation crash when macOS returns the first microphone-permission response on a background queue. Includes the Signal Desk interface refinements from RC4. Universal for Apple Silicon and Intel. This build is not Developer ID signed or notarized; follow the README first-launch instructions."
+              --notes "Release candidate for hands-on testing. Stops the input meter from repeatedly recreating Core Audio default-device aggregates, hides private Core Audio devices, and makes the waveform smoother with a stable display cadence and fast-attack/slow-release response. FOH now appears as a standard Mac app in the Dock and application menu while retaining its menu-bar control. Also includes the microphone-permission crash fix from RC5 and Signal Desk interface refinements from RC4. Universal for Apple Silicon and Intel. This build is not Developer ID signed or notarized; follow the README first-launch instructions."
           else
             gh release edit "$RELEASE_TAG" \
               --title "$release_title" \

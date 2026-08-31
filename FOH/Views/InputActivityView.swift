@@ -33,9 +33,6 @@ struct InputActivityView: View {
         }
         .onAppear { monitor.beginVisiblePresentation() }
         .onDisappear { monitor.endVisiblePresentation() }
-        .onChange(of: appState.defaultInputID) {
-            monitor.restartForInputDeviceChange()
-        }
         .onChange(of: monitor.isMonitoring) {
             appState.refresh()
         }
@@ -117,6 +114,5 @@ private struct WaveformView: View {
                 )
             }
         }
-        .animation(.easeOut(duration: 0.12), value: samples)
     }
 }
