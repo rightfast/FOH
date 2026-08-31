@@ -198,7 +198,7 @@ private struct DiagnosticDeviceCard: View {
     }
 }
 
-private extension DiagnosticEventKind {
+extension DiagnosticEventKind {
     var systemImage: String {
         switch self {
         case .appStarted: "power"
@@ -208,6 +208,10 @@ private extension DiagnosticEventKind {
         case .defaultInputChanged: "mic"
         case .defaultOutputChanged: "speaker.wave.2"
         case .deviceSelected: "checkmark.circle"
+        case .priorityChanged: "arrow.up.arrow.down"
+        case .automationChanged: "switch.2"
+        case .automaticFallback: "arrow.triangle.branch"
+        case .preferredRestored: "arrow.uturn.backward.circle"
         case .error: "exclamationmark.triangle"
         }
     }
@@ -215,8 +219,9 @@ private extension DiagnosticEventKind {
     var tint: Color {
         switch self {
         case .error: .red
-        case .deviceConnected: .green
+        case .deviceConnected, .preferredRestored: .green
         case .deviceDisconnected: .orange
+        case .automaticFallback: .purple
         default: .accentColor
         }
     }

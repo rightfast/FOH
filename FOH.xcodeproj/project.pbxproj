@@ -10,12 +10,15 @@
 		0F12545198F88566437DED39 /* MicrophoneMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBC67EEC399C606B2B2F989B /* MicrophoneMonitor.swift */; };
 		0F518E228CF9ED94656C4C7C /* AudioTransportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87A155E8C5FAC862E0AE7D43 /* AudioTransportTests.swift */; };
 		109C921FABBAEB72604EE0A7 /* MicrophoneMonitorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B2C82557CEA1DA82F04B651 /* MicrophoneMonitorTests.swift */; };
+		1C7A76F02B68DA874DBEA849 /* DevicePrioritiesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78F192FF3FCA3BDE48C2938E /* DevicePrioritiesView.swift */; };
 		1DC35C0E716A0A85E6E89A0C /* DeviceRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF5A485CBDF61184AC74DBBB /* DeviceRow.swift */; };
 		1E81AA8782C916243EE4EADD /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A91CACA95B8289830372CDC4 /* MenuBarView.swift */; };
 		3B9B62454E9D44C9537DCCCC /* StageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1014DB4BCFCE4D85103AA58 /* StageView.swift */; };
 		43C0F948033485A25E81917F /* FOHApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8FEA8F40FE8EC36E2E804D7 /* FOHApp.swift */; };
 		5F1E9367D56E806E616DC406 /* DiagnosticReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF48D875AD5872D6251ED9FD /* DiagnosticReport.swift */; };
 		65A8647F953A5305F32A5BBF /* CoreAudioError.swift in Sources */ = {isa = PBXBuildFile; fileRef = D98A5C1E1F878AE9143DF30E /* CoreAudioError.swift */; };
+		6AE70F0FC835F5A72A46EB5F /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75443ACC537AE173753AE8BC /* HistoryView.swift */; };
+		91DC25C8209D75E6FD7DC298 /* DevicePriority.swift in Sources */ = {isa = PBXBuildFile; fileRef = 184FBDBE0839C804CCD6AFF7 /* DevicePriority.swift */; };
 		9732B9C3AC1B6BFC3416F277 /* AudioDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14AE62CA8DA75D4B1343890B /* AudioDevice.swift */; };
 		A65510FB6B4D0C512131093F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 572BAF538B47705B9863275D /* Assets.xcassets */; };
 		A94502EF1636806D9242C51D /* DiagnosticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 271B4476B0938180874E699E /* DiagnosticsView.swift */; };
@@ -24,6 +27,7 @@
 		D0AB321EBF0FC974624B4744 /* AudioHardwareService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A36E42E11D1F4C193CFD9476 /* AudioHardwareService.swift */; };
 		E1C9C2FEEB9AE946741E7E38 /* DiagnosticReportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D25E623A9EDA7ECC1206327 /* DiagnosticReportTests.swift */; };
 		F4D335187EA7BD36080A3415 /* InputActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DEE6EA26F3B8FAF87110910 /* InputActivityView.swift */; };
+		F8948E6458BAC16833D5F386 /* AudioPriorityPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E745A110D40240A69FBD3BB /* AudioPriorityPolicyTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -39,11 +43,15 @@
 /* Begin PBXFileReference section */
 		0DEE6EA26F3B8FAF87110910 /* InputActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputActivityView.swift; sourceTree = "<group>"; };
 		14AE62CA8DA75D4B1343890B /* AudioDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDevice.swift; sourceTree = "<group>"; };
+		184FBDBE0839C804CCD6AFF7 /* DevicePriority.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevicePriority.swift; sourceTree = "<group>"; };
 		271B4476B0938180874E699E /* DiagnosticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsView.swift; sourceTree = "<group>"; };
 		2ABC2676156E7FDD3C81EA09 /* FOH.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FOH.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		414DF5D2DE57365869B037C2 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		48831CE27FFF67B714C2F8A5 /* FOHTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FOHTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		572BAF538B47705B9863275D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		5E745A110D40240A69FBD3BB /* AudioPriorityPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPriorityPolicyTests.swift; sourceTree = "<group>"; };
+		75443ACC537AE173753AE8BC /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
+		78F192FF3FCA3BDE48C2938E /* DevicePrioritiesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevicePrioritiesView.swift; sourceTree = "<group>"; };
 		87A155E8C5FAC862E0AE7D43 /* AudioTransportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioTransportTests.swift; sourceTree = "<group>"; };
 		8B2C82557CEA1DA82F04B651 /* MicrophoneMonitorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicrophoneMonitorTests.swift; sourceTree = "<group>"; };
 		8D25E623A9EDA7ECC1206327 /* DiagnosticReportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticReportTests.swift; sourceTree = "<group>"; };
@@ -73,6 +81,7 @@
 		10CE2EA4FB79AE6A13C91015 /* FOHTests */ = {
 			isa = PBXGroup;
 			children = (
+				5E745A110D40240A69FBD3BB /* AudioPriorityPolicyTests.swift */,
 				87A155E8C5FAC862E0AE7D43 /* AudioTransportTests.swift */,
 				8D25E623A9EDA7ECC1206327 /* DiagnosticReportTests.swift */,
 				8B2C82557CEA1DA82F04B651 /* MicrophoneMonitorTests.swift */,
@@ -100,8 +109,10 @@
 		52AE391E4C4E888BA2E120B0 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				78F192FF3FCA3BDE48C2938E /* DevicePrioritiesView.swift */,
 				EF5A485CBDF61184AC74DBBB /* DeviceRow.swift */,
 				271B4476B0938180874E699E /* DiagnosticsView.swift */,
+				75443ACC537AE173753AE8BC /* HistoryView.swift */,
 				0DEE6EA26F3B8FAF87110910 /* InputActivityView.swift */,
 				A91CACA95B8289830372CDC4 /* MenuBarView.swift */,
 				8F53DD5CBDB54056E65C49E3 /* SettingsView.swift */,
@@ -114,6 +125,7 @@
 			isa = PBXGroup;
 			children = (
 				14AE62CA8DA75D4B1343890B /* AudioDevice.swift */,
+				184FBDBE0839C804CCD6AFF7 /* DevicePriority.swift */,
 				BF48D875AD5872D6251ED9FD /* DiagnosticReport.swift */,
 			);
 			path = Models;
@@ -234,6 +246,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F8948E6458BAC16833D5F386 /* AudioPriorityPolicyTests.swift in Sources */,
 				0F518E228CF9ED94656C4C7C /* AudioTransportTests.swift in Sources */,
 				E1C9C2FEEB9AE946741E7E38 /* DiagnosticReportTests.swift in Sources */,
 				109C921FABBAEB72604EE0A7 /* MicrophoneMonitorTests.swift in Sources */,
@@ -248,10 +261,13 @@
 				9732B9C3AC1B6BFC3416F277 /* AudioDevice.swift in Sources */,
 				D0AB321EBF0FC974624B4744 /* AudioHardwareService.swift in Sources */,
 				65A8647F953A5305F32A5BBF /* CoreAudioError.swift in Sources */,
+				1C7A76F02B68DA874DBEA849 /* DevicePrioritiesView.swift in Sources */,
+				91DC25C8209D75E6FD7DC298 /* DevicePriority.swift in Sources */,
 				1DC35C0E716A0A85E6E89A0C /* DeviceRow.swift in Sources */,
 				5F1E9367D56E806E616DC406 /* DiagnosticReport.swift in Sources */,
 				A94502EF1636806D9242C51D /* DiagnosticsView.swift in Sources */,
 				43C0F948033485A25E81917F /* FOHApp.swift in Sources */,
+				6AE70F0FC835F5A72A46EB5F /* HistoryView.swift in Sources */,
 				F4D335187EA7BD36080A3415 /* InputActivityView.swift in Sources */,
 				1E81AA8782C916243EE4EADD /* MenuBarView.swift in Sources */,
 				0F12545198F88566437DED39 /* MicrophoneMonitor.swift in Sources */,

@@ -8,6 +8,18 @@ struct MenuBarView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             header
+            if let notice = appState.automationNotice {
+                Divider()
+                VStack(alignment: .leading, spacing: 3) {
+                    Label(notice.title, systemImage: "bolt.circle.fill")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Color.accentColor)
+                    Text(notice.detail)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(12)
+            }
             Divider()
             InputActivityView(compact: true)
                 .environmentObject(appState)

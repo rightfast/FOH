@@ -12,6 +12,10 @@ enum DiagnosticEventKind: String, Codable, Sendable {
     case defaultInputChanged
     case defaultOutputChanged
     case deviceSelected
+    case priorityChanged
+    case automationChanged
+    case automaticFallback
+    case preferredRestored
     case error
 }
 

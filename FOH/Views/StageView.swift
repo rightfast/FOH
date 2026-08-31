@@ -3,26 +3,48 @@ import SwiftUI
 struct StageView: View {
     @EnvironmentObject private var appState: AppState
     @EnvironmentObject private var microphoneMonitor: MicrophoneMonitor
-    @State private var selection: AppSection = .stage
+    @State private var selection: AppSection? = .stage
 
     var body: some View {
         NavigationSplitView {
-            List(selection: $selection) {
+            VStack(spacing: 4) {
                 ForEach(AppSection.allCases) { section in
-                    Label(section.title, systemImage: section.systemImage)
-                        .tag(section)
+                    Button {
+                        selection = section
+                    } label: {
+                        Label(section.title, systemImage: section.systemImage)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(selection == section ? Color.white : Color.primary)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 8)
+                    .background(
+                        selection == section ? Color.accentColor : Color.clear,
+                        in: RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    )
                 }
+                Spacer()
             }
+            .padding(10)
             .navigationSplitViewColumnWidth(min: 180, ideal: 210)
         } detail: {
-            switch selection {
-            case .stage, .devices:
+            switch selection ?? .stage {
+            case .stage:
                 stageContent
-            case .diagnostics, .history:
+            case .devices:
+                DevicePrioritiesView()
+                    .environmentObject(appState)
+            case .history:
+                HistoryView()
+                    .environmentObject(appState)
+            case .diagnostics:
                 DiagnosticsView()
                     .environmentObject(appState)
             case .scenes, .automations:
-                comingSoon(selection.title, icon: selection.systemImage)
+                let section = selection ?? .stage
+                comingSoon(section.title, icon: section.systemImage)
             }
         }
     }
@@ -30,6 +52,9 @@ struct StageView: View {
     private var stageContent: some View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 28) {
+                    if let notice = appState.automationNotice {
+                        automationBanner(notice)
+                    }
                     VStack(alignment: .leading, spacing: 6) {
                         HStack(alignment: .firstTextBaseline) {
                             Text("Your audio stage")
@@ -61,6 +86,22 @@ struct StageView: View {
                     Label("Refresh", systemImage: "arrow.clockwise")
                 }
             }
+    }
+
+    private func automationBanner(_ notice: AutomationNotice) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: "bolt.circle.fill")
+                .font(.title2)
+                .foregroundStyle(Color.accentColor)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(notice.title).font(.headline)
+                Text(notice.detail).font(.caption).foregroundStyle(.secondary)
+            }
+            Spacer()
+        }
+        .padding(14)
+        .background(Color.accentColor.opacity(0.1), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .transition(.move(edge: .top).combined(with: .opacity))
     }
 
     private var microphoneCard: some View {
