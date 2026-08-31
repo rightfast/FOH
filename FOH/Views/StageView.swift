@@ -1,8 +1,10 @@
 import SwiftUI
+import AppKit
 
 struct StageView: View {
     @EnvironmentObject private var appState: AppState
     @EnvironmentObject private var microphoneMonitor: MicrophoneMonitor
+    @Environment(\.openWindow) private var openWindow
     @State private var selection: AppSection? = .stage
 
     var body: some View {
@@ -46,9 +48,17 @@ struct StageView: View {
                 AutomationsView()
                     .environmentObject(appState)
             case .scenes:
-                let section = selection ?? .stage
-                comingSoon(section.title, icon: section.systemImage)
+                ScenesView().environmentObject(appState)
             }
+        }
+        .sheet(isPresented: Binding(
+            get: { !appState.hasCompletedOnboarding },
+            set: { _ in }
+        )) {
+            OnboardingView().environmentObject(appState)
+        }
+        .onReceive(NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.didWakeNotification)) { _ in
+            appState.refresh()
         }
     }
 
@@ -63,9 +73,9 @@ struct StageView: View {
                             Text("Your audio stage")
                                 .font(.largeTitle.bold())
                             Spacer()
-                            Label("Ready", systemImage: "checkmark.circle.fill")
+                            Label(appState.automationPaused ? "Paused" : "Ready", systemImage: appState.automationPaused ? "pause.circle.fill" : "checkmark.circle.fill")
                                 .font(.caption.weight(.semibold))
-                                .foregroundStyle(.green)
+                                .foregroundStyle(appState.automationPaused ? .orange : .green)
                         }
                         Text("See what’s connected and put the right gear onstage.")
                             .foregroundStyle(.secondary)
@@ -84,6 +94,11 @@ struct StageView: View {
             .background(Color(nsColor: .windowBackgroundColor))
             .toolbar {
                 Button {
+                    openWindow(id: "call-check")
+                } label: {
+                    Label("Call Check", systemImage: "checkmark.bubble")
+                }
+                Button {
                     appState.refresh()
                 } label: {
                     Label("Refresh", systemImage: "arrow.clockwise")
@@ -101,6 +116,9 @@ struct StageView: View {
                 Text(notice.detail).font(.caption).foregroundStyle(.secondary)
             }
             Spacer()
+            if appState.undoState != nil {
+                Button("Undo") { appState.undoLastAutomation() }
+            }
         }
         .padding(14)
         .background(Color.accentColor.opacity(0.1), in: RoundedRectangle(cornerRadius: 14, style: .continuous))

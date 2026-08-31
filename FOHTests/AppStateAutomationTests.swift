@@ -4,8 +4,8 @@ import XCTest
 
 @MainActor
 final class AppStateAutomationTests: XCTestCase {
-    private var defaults: UserDefaults!
-    private var suiteName: String!
+    nonisolated(unsafe) private var defaults: UserDefaults!
+    nonisolated(unsafe) private var suiteName: String!
 
     override func setUp() {
         super.setUp()
@@ -177,6 +177,62 @@ final class AppStateAutomationTests: XCTestCase {
         XCTAssertEqual(state.activeMeetingDomain, "meet.google.com")
         XCTAssertEqual(hardware.selections.map(\.id), [input.id, output.id])
         XCTAssertEqual(state.events.last?.kind, .applicationRuleApplied)
+    }
+
+    func testPausedAutomationDoesNotApplyApplicationRule() async {
+        let input = device(id: 90, uid: "preferred", name: "Preferred Mic", direction: .input)
+        let current = device(id: 91, uid: "current", name: "Current Mic", direction: .input)
+        let hardware = FakeAudioHardware(devices: [input, current], inputID: current.objectID)
+        let applications = FakeApplicationMonitor()
+        let state = AppState(hardware: hardware, defaults: defaults, applicationMonitor: applications)
+        state.setApplicationDevice(input.id, for: .input, ruleID: "us.zoom.xos")
+        state.setApplicationRuleEnabled("us.zoom.xos", isEnabled: true)
+        state.setAutomationPaused(true)
+
+        applications.launch("us.zoom.xos")
+        await Task.yield()
+        await Task.yield()
+
+        XCTAssertTrue(hardware.selections.isEmpty)
+        XCTAssertEqual(state.defaultInput?.id, current.id)
+        XCTAssertNil(state.activeAutomation)
+    }
+
+    func testActiveSceneTakesPrecedenceOverRunningApplication() async {
+        let sceneInput = device(id: 100, uid: "scene", name: "Scene Mic", direction: .input)
+        let appInput = device(id: 101, uid: "app", name: "App Mic", direction: .input)
+        let hardware = FakeAudioHardware(devices: [sceneInput, appInput], inputID: appInput.objectID)
+        let applications = FakeApplicationMonitor()
+        let state = AppState(hardware: hardware, defaults: defaults, applicationMonitor: applications)
+        let scene = state.scenes[0]
+        state.updateSceneDevice(scene.id, direction: .input, deviceID: sceneInput.id)
+        state.activateScene(scene.id)
+        state.setApplicationDevice(appInput.id, for: .input, ruleID: "us.zoom.xos")
+        state.setApplicationRuleEnabled("us.zoom.xos", isEnabled: true)
+
+        applications.launch("us.zoom.xos")
+        await Task.yield()
+        await Task.yield()
+
+        XCTAssertEqual(state.defaultInput?.id, sceneInput.id)
+        XCTAssertEqual(state.activeAutomation?.source, .scene)
+    }
+
+    func testUndoRestoresDevicesAndPausesAutomation() {
+        let selected = device(id: 110, uid: "selected", name: "Selected Mic", direction: .input)
+        let original = device(id: 111, uid: "original", name: "Original Mic", direction: .input)
+        let hardware = FakeAudioHardware(devices: [selected, original], inputID: original.objectID)
+        let state = AppState(hardware: hardware, defaults: defaults)
+        let scene = state.scenes[0]
+        state.updateSceneDevice(scene.id, direction: .input, deviceID: selected.id)
+        state.activateScene(scene.id)
+
+        state.undoLastAutomation()
+
+        XCTAssertEqual(state.defaultInput?.id, original.id)
+        XCTAssertTrue(state.automationPaused)
+        XCTAssertNil(state.undoState)
+        XCTAssertEqual(state.events.last?.kind, .automationUndone)
     }
 
     private func device(id: AudioObjectID, uid: String, name: String, direction: AudioDirection) -> AudioDevice {

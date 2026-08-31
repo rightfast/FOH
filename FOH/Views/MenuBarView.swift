@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 struct MenuBarView: View {
     @Environment(\.openWindow) private var openWindow
@@ -8,6 +9,7 @@ struct MenuBarView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             header
+            automationControls
             if let notice = appState.automationNotice {
                 Divider()
                 VStack(alignment: .leading, spacing: 3) {
@@ -38,6 +40,9 @@ struct MenuBarView: View {
         } message: {
             Text(appState.errorMessage ?? "Unknown error")
         }
+        .onReceive(NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.didWakeNotification)) { _ in
+            appState.refresh()
+        }
     }
 
     private var header: some View {
@@ -45,7 +50,7 @@ struct MenuBarView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("FOH")
                     .font(.headline)
-                Text("Your audio stage")
+                Text(appState.automationPaused ? "Automation paused" : (appState.activeAutomation?.name ?? "Your audio stage"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -59,6 +64,40 @@ struct MenuBarView: View {
             .help("Refresh devices")
         }
         .padding(14)
+    }
+
+    private var automationControls: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            if let active = appState.activeAutomation {
+                Label(active.detail, systemImage: "bolt.fill")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+            }
+            HStack {
+                Button {
+                    appState.setAutomationPaused(!appState.automationPaused)
+                } label: {
+                    Label(appState.automationPaused ? "Resume" : "Pause", systemImage: appState.automationPaused ? "play.fill" : "pause.fill")
+                }
+                .buttonStyle(.bordered)
+                Button {
+                    openWindow(id: "call-check")
+                    NSApp.activate(ignoringOtherApps: true)
+                } label: {
+                    Label("Call Check", systemImage: "checkmark.bubble")
+                }
+                .buttonStyle(.borderedProminent)
+                Spacer()
+                if appState.undoState != nil {
+                    Button("Undo") { appState.undoLastAutomation() }
+                        .buttonStyle(.plain)
+                }
+            }
+            .controlSize(.small)
+        }
+        .padding(.horizontal, 14)
+        .padding(.bottom, 12)
     }
 
     private func deviceSection(title: String, devices: [AudioDevice]) -> some View {

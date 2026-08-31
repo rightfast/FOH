@@ -1,12 +1,12 @@
-name: Publish Preview
+name: Publish Test Build
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: Preview version tag
+        description: Test build version tag
         required: true
-        default: v0.1.0-preview.1
+        default: v0.2.0-rc.1
 
 permissions:
   contents: write
@@ -25,6 +25,11 @@ jobs:
       - name: Install build tools
         run: brew install xcodegen
 
+      - name: Run unit tests
+        run: |
+          xcodegen generate
+          xcodebuild test -project FOH.xcodeproj -scheme FOH -destination 'platform=macOS'
+
       - name: Build universal preview DMG
         run: Scripts/build-release.sh --adhoc --skip-notarization
 
@@ -38,13 +43,14 @@ jobs:
         run: |
           release_name="${RELEASE_TAG#v}"
           release_name="${release_name/-preview./ Preview }"
+          release_name="${release_name/-rc./ RC }"
           release_title="FOH $release_name"
           if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
             gh release create "$RELEASE_TAG" \
               --target "$GITHUB_SHA" \
               --title "$release_title" \
               --latest \
-              --notes "Universal Apple Silicon and Intel test build. This preview is not Developer ID signed or notarized. Follow the README first-launch instructions and verify the published SHA-256 checksum."
+              --notes "Release candidate for hands-on testing. Adds Scenes, guided Call Check, first-run setup, automation pause and undo, clear rule precedence, menu-bar status, Launch at Login, and wake/reconnect reliability. Universal for Apple Silicon and Intel. This build is not Developer ID signed or notarized; follow the README first-launch instructions."
           else
             gh release edit "$RELEASE_TAG" \
               --title "$release_title" \

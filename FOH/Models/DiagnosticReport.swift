@@ -19,6 +19,9 @@ enum DiagnosticEventKind: String, Codable, Sendable {
     case applicationDetected
     case applicationRuleChanged
     case applicationRuleApplied
+    case sceneChanged
+    case automationUndone
+    case onboardingCompleted
     case error
 }
 

@@ -8,11 +8,11 @@ and macOS quietly chose the MacBook microphone. Or your AirPods disconnected and
 Zoom kept the wrong output. FOH watches the devices that are connected and applies
 the rules you choose.
 
-FOH is open source and free. It is currently a preview.
+FOH is open source and free. It is currently a release candidate for hands-on testing.
 
 ## Download
 
-**[Download FOH 0.1.0 Preview 1 for Mac](https://github.com/rightfast/FOH/releases/download/v0.1.0-preview.1/FOH.dmg)**
+**[Download the latest FOH test build for Mac](https://github.com/rightfast/FOH/releases/latest/download/FOH.dmg)**
 
 The DMG contains one universal app for Apple Silicon and Intel Macs. It requires
 macOS 14 or newer.
@@ -22,7 +22,7 @@ Open the DMG, then drag FOH into Applications.
 ### First launch
 
 FOH does not have a Developer ID signature yet. macOS will block the downloaded
-preview the first time you open it because Apple cannot verify the developer.
+test build the first time you open it because Apple cannot verify the developer.
 
 1. Try to open FOH, then dismiss the warning.
 2. Open **System Settings > Privacy & Security**.
@@ -45,6 +45,15 @@ The release also includes `FOH.dmg.sha256` so you can verify the download.
 - Detects meeting pages in the frontmost Safari or Chrome tab.
 - Shows live microphone activity without recording audio.
 - Records a local history that explains device changes.
+- Saves complete microphone-and-output setups as one-click Scenes.
+- Walks through microphone, listening, and automation checks before a call.
+- Shows exactly which rule is active and why it chose each device.
+- Lets you pause all automation or undo its most recent switch.
+- Can launch automatically when you sign in to your Mac.
+
+When several rules could apply, FOH uses a predictable order: an active Scene
+wins, followed by a browser meeting, a native app rule, and finally ordinary
+device priority. The active choice is visible in the app and menu bar.
 
 FOH includes presets for Zoom Workplace, Microsoft Teams, Slack, Cisco Webex,
 Discord, and FaceTime. Installed apps appear first. Missing apps stay visible but
@@ -117,8 +126,9 @@ The project uses the bundle identifier `studio.rightfast.foh`.
 
 ## Releases
 
-GitHub Releases holds numbered preview builds and, later, signed public builds.
-The preview workflow builds and verifies a universal DMG without Apple signing.
+GitHub Releases holds numbered test builds and, later, signed public builds.
+The test-build workflow runs the unit suite, then builds and verifies a universal
+DMG without Apple signing.
 Production releases require a paid Apple Developer membership, a Developer ID
 Application certificate, and notarization.
 

@@ -215,6 +215,9 @@ extension DiagnosticEventKind {
         case .applicationDetected: "app.badge"
         case .applicationRuleChanged: "slider.horizontal.3"
         case .applicationRuleApplied: "bolt.circle"
+        case .sceneChanged: "rectangle.stack"
+        case .automationUndone: "arrow.uturn.backward.circle"
+        case .onboardingCompleted: "hand.wave"
         case .error: "exclamationmark.triangle"
         }
     }
@@ -222,7 +225,7 @@ extension DiagnosticEventKind {
     var tint: Color {
         switch self {
         case .error: .red
-        case .deviceConnected, .preferredRestored, .applicationRuleApplied: .green
+        case .deviceConnected, .preferredRestored, .applicationRuleApplied, .onboardingCompleted: .green
         case .deviceDisconnected: .orange
         case .automaticFallback: .purple
         default: .accentColor

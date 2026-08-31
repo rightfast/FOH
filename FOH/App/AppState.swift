@@ -16,6 +16,22 @@ final class AppState: ObservableObject {
     @Published private(set) var browserRule: BrowserAudioRule
     @Published private(set) var activeMeetingDomain: String?
     @Published private(set) var browserPermissionDenied = false
+    @Published private(set) var scenes: [AudioScene]
+    @Published private(set) var activeSceneID: UUID?
+    @Published private(set) var activeAutomation: ActiveAutomation?
+    @Published private(set) var undoState: AudioUndoState?
+    @Published private(set) var hasCompletedOnboarding: Bool
+    @Published var automationPaused: Bool {
+        didSet {
+            defaults.set(automationPaused, forKey: Keys.automationPaused)
+            record(.automationChanged, "Automation \(automationPaused ? "paused" : "resumed").")
+            if automationPaused {
+                activeAutomation = nil
+            } else {
+                reconcileAutomation()
+            }
+        }
+    }
     @Published var automaticSwitching: Bool {
         didSet {
             defaults.set(automaticSwitching, forKey: Keys.automaticSwitching)
@@ -51,6 +67,10 @@ final class AppState: ObservableObject {
         priorities = Self.loadPriorities(from: defaults)
         applicationRules = Self.loadApplicationRules(from: defaults)
         browserRule = Self.loadBrowserRule(from: defaults)
+        scenes = Self.loadScenes(from: defaults)
+        activeSceneID = defaults.string(forKey: Keys.activeSceneID).flatMap(UUID.init(uuidString:))
+        hasCompletedOnboarding = defaults.bool(forKey: Keys.onboardingCompleted)
+        automationPaused = defaults.bool(forKey: Keys.automationPaused)
         automaticSwitching = defaults.bool(forKey: Keys.automaticSwitching)
         restoresPreferredDevice = defaults.object(forKey: Keys.restoresPreferredDevice) as? Bool ?? true
 #if DEBUG
@@ -74,13 +94,11 @@ final class AppState: ObservableObject {
             applicationMonitor.isRunning(bundleIdentifier: $0.bundleIdentifier)
         }.map(\.bundleIdentifier))
         record(.appStarted, "FOH started and discovered \(devices.count) audio endpoints.")
-        for rule in applicationRules where rule.isEnabled && runningApplicationIDs.contains(rule.bundleIdentifier) {
-            applyApplicationRule(rule, trigger: "\(rule.displayName) was already running")
-        }
         browserMonitor.onChange = { [weak self] snapshot in
             self?.browserPageDidChange(snapshot)
         }
         if browserRule.isEnabled { browserMonitor.startObserving() }
+        reconcileAutomation()
     }
 
     var inputDevices: [AudioDevice] { devices.filter { $0.direction == .input } }
@@ -115,6 +133,10 @@ final class AppState: ObservableObject {
     func select(_ device: AudioDevice) {
         do {
             try hardware.setDefaultDevice(device)
+            activeSceneID = nil
+            defaults.removeObject(forKey: Keys.activeSceneID)
+            activeAutomation = nil
+            undoState = nil
             record(.deviceSelected, "Selected \(device.name) as the default \(device.direction.rawValue).")
             refresh()
         } catch {
@@ -145,6 +167,92 @@ final class AppState: ObservableObject {
         events.removeAll()
     }
 
+    func setAutomationPaused(_ paused: Bool) {
+        automationPaused = paused
+    }
+
+    func completeOnboarding() {
+        hasCompletedOnboarding = true
+        defaults.set(true, forKey: Keys.onboardingCompleted)
+        record(.onboardingCompleted, "Completed first-run setup.")
+    }
+
+    func resetOnboarding() {
+        hasCompletedOnboarding = false
+        defaults.set(false, forKey: Keys.onboardingCompleted)
+    }
+
+    func activateScene(_ sceneID: UUID) {
+        guard let scene = scenes.first(where: { $0.id == sceneID }) else { return }
+        activeSceneID = sceneID
+        defaults.set(sceneID.uuidString, forKey: Keys.activeSceneID)
+        applyScene(scene, trigger: "\(scene.name) was activated")
+    }
+
+    func deactivateScene() {
+        guard let scene = activeScene else { return }
+        activeSceneID = nil
+        defaults.removeObject(forKey: Keys.activeSceneID)
+        activeAutomation = nil
+        record(.sceneChanged, "Left the \(scene.name) scene. Current devices were unchanged.")
+        reconcileAutomation()
+    }
+
+    func updateSceneDevice(_ sceneID: UUID, direction: AudioDirection, deviceID: String?) {
+        guard let index = scenes.firstIndex(where: { $0.id == sceneID }) else { return }
+        if direction == .input {
+            scenes[index].inputDeviceID = deviceID
+        } else {
+            scenes[index].outputDeviceID = deviceID
+        }
+        saveScenes()
+        if activeSceneID == sceneID { applyScene(scenes[index], trigger: "\(scenes[index].name) was updated") }
+    }
+
+    func addScene(named name: String) {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        scenes.append(AudioScene(name: trimmed, symbolName: "slider.horizontal.3"))
+        saveScenes()
+        record(.sceneChanged, "Created the \(trimmed) scene.")
+    }
+
+    func removeScene(_ sceneID: UUID) {
+        guard let scene = scenes.first(where: { $0.id == sceneID }) else { return }
+        if activeSceneID == sceneID { deactivateScene() }
+        scenes.removeAll { $0.id == sceneID }
+        saveScenes()
+        record(.sceneChanged, "Removed the \(scene.name) scene.")
+    }
+
+    func undoLastAutomation() {
+        guard let undoState else { return }
+        if !automationPaused { automationPaused = true }
+        let availableByID = Dictionary(uniqueKeysWithValues: devices.map { ($0.id, $0) })
+        var restored: [String] = []
+        for (direction, id) in [(AudioDirection.input, undoState.inputDeviceID), (.output, undoState.outputDeviceID)] {
+            guard let id, let device = availableByID[id], device.direction == direction else { continue }
+            do {
+                try hardware.setDefaultDevice(device)
+                if direction == .input { defaultInputID = device.objectID } else { defaultOutputID = device.objectID }
+                restored.append(device.name)
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+        }
+        self.undoState = nil
+        guard !restored.isEmpty else { return }
+        activeAutomation = nil
+        let detail = "Restored \(restored.joined(separator: " and ")). Automation is paused so the rule won’t immediately run again."
+        record(.automationUndone, detail)
+        showNotice(title: "Automation undone", detail: detail)
+    }
+
+    var activeScene: AudioScene? {
+        guard let activeSceneID else { return nil }
+        return scenes.first { $0.id == activeSceneID }
+    }
+
     func isApplicationRunning(_ rule: ApplicationAudioRule) -> Bool {
         runningApplicationIDs.contains(rule.bundleIdentifier)
     }
@@ -160,7 +268,7 @@ final class AppState: ObservableObject {
         let rule = applicationRules[index]
         saveApplicationRules()
         record(.applicationRuleChanged, "\(rule.displayName) audio automation \(isEnabled ? "enabled" : "disabled").")
-        if isEnabled, isApplicationRunning(rule) { applyApplicationRule(rule, trigger: "\(rule.displayName) automation was enabled") }
+        reconcileAutomation()
     }
 
     func setApplicationDevice(_ deviceID: String?, for direction: AudioDirection, ruleID: String) {
@@ -170,12 +278,12 @@ final class AppState: ObservableObject {
         saveApplicationRules()
         let choice = deviceID.flatMap { id in priorities.first(where: { $0.id == id })?.name } ?? "highest-priority available device"
         record(.applicationRuleChanged, "\(rule.displayName) \(direction.rawValue) set to \(choice).")
-        if rule.isEnabled, isApplicationRunning(rule) { applyApplicationRule(rule, trigger: "\(rule.displayName) rule was updated") }
+        if rule.isEnabled, isApplicationRunning(rule) { reconcileAutomation() }
     }
 
     func testApplicationRule(_ ruleID: String) {
         guard let rule = applicationRules.first(where: { $0.id == ruleID }) else { return }
-        applyApplicationRule(rule, trigger: "\(rule.displayName) rule test")
+        applyApplicationRule(rule, source: .application, trigger: "\(rule.displayName) rule test", force: true)
     }
 
     func addApplication(at url: URL) {
@@ -211,7 +319,7 @@ final class AppState: ObservableObject {
     func removeApplicationRule(_ ruleID: String) {
         guard let rule = applicationRules.first(where: { $0.id == ruleID }), !rule.isPreset else { return }
         applicationRules.removeAll { $0.id == ruleID }
-        runningApplicationIDs.remove(ruleID)
+        runningApplicationIDs.remove(rule.bundleIdentifier)
         saveApplicationRules()
         record(.applicationRuleChanged, "Removed \(rule.displayName) from application automations.")
     }
@@ -231,6 +339,7 @@ final class AppState: ObservableObject {
         } else {
             browserMonitor.stopObserving()
         }
+        reconcileAutomation()
     }
 
     func setBrowserEnabled(_ bundleIdentifier: String, isEnabled: Bool) {
@@ -275,7 +384,7 @@ final class AppState: ObservableObject {
     }
 
     func testBrowserRule() {
-        applyBrowserRule(trigger: "Browser meeting rule test")
+        applyBrowserRule(trigger: "Browser meeting rule test", force: true)
     }
 
     func refresh() {
@@ -300,13 +409,14 @@ final class AppState: ObservableObject {
                 previousOutputID: previousOutputID,
                 currentOutputID: refreshedOutputID
             )
-            if !previousDevices.isEmpty, automaticSwitching {
+            if !previousDevices.isEmpty, automaticSwitching, !automationPaused, activeAutomation == nil {
                 applyPriorityPolicy(
                     previousDevices: previousDevices,
                     previousInputID: previousInputID,
                     previousOutputID: previousOutputID
                 )
             }
+            reconcileAutomation()
         } catch {
             errorMessage = error.localizedDescription
             record(.error, error.localizedDescription)
@@ -316,7 +426,7 @@ final class AppState: ObservableObject {
     private func scheduleRefresh() {
         refreshTask?.cancel()
         refreshTask = Task { [weak self] in
-            try? await Task.sleep(for: .milliseconds(200))
+            try? await Task.sleep(for: .milliseconds(350))
             guard !Task.isCancelled else { return }
             self?.refresh()
         }
@@ -433,13 +543,14 @@ final class AppState: ObservableObject {
         guard let rule = applicationRules.first(where: { $0.bundleIdentifier == bundleIdentifier }) else { return }
         runningApplicationIDs.insert(bundleIdentifier)
         record(.applicationDetected, "\(rule.displayName) launched.")
-        if rule.isEnabled { applyApplicationRule(rule, trigger: "\(rule.displayName) launched") }
+        reconcileAutomation()
     }
 
     private func applicationDidTerminate(_ bundleIdentifier: String) {
         guard let rule = applicationRules.first(where: { $0.bundleIdentifier == bundleIdentifier }) else { return }
         runningApplicationIDs.remove(bundleIdentifier)
         record(.applicationDetected, "\(rule.displayName) quit. FOH left the current system devices unchanged.")
+        reconcileAutomation()
     }
 
     private func browserPageDidChange(_ snapshot: BrowserPageSnapshot) {
@@ -455,15 +566,16 @@ final class AppState: ObservableObject {
               let url = snapshot.url,
               let domain = BrowserDomainPolicy.matchingDomain(for: url, domains: browserRule.domains) else {
             activeMeetingDomain = nil
+            reconcileAutomation()
             return
         }
         guard activeMeetingDomain != domain else { return }
         activeMeetingDomain = domain
         logger.info("Browser meeting rule matched for domain: \(domain, privacy: .public)")
-        applyBrowserRule(trigger: "A meeting opened on \(domain)")
+        reconcileAutomation()
     }
 
-    private func applyBrowserRule(trigger: String) {
+    private func applyBrowserRule(trigger: String, force: Bool = false) {
         let syntheticRule = ApplicationAudioRule(
             bundleIdentifier: "studio.rightfast.foh.browser-meetings",
             displayName: "Browser meetings",
@@ -473,11 +585,23 @@ final class AppState: ObservableObject {
             inputDeviceID: browserRule.inputDeviceID,
             outputDeviceID: browserRule.outputDeviceID
         )
-        applyApplicationRule(syntheticRule, trigger: trigger)
+        applyApplicationRule(syntheticRule, source: .browserMeeting, trigger: trigger, force: force)
     }
 
-    private func applyApplicationRule(_ rule: ApplicationAudioRule, trigger: String) {
+    private func applyApplicationRule(
+        _ rule: ApplicationAudioRule,
+        source: AutomationSource,
+        trigger: String,
+        force: Bool = false
+    ) {
+        guard force || !automationPaused else { return }
+        let previous = AudioUndoState(
+            inputDeviceID: defaultInput?.id,
+            outputDeviceID: defaultOutput?.id,
+            actionName: rule.displayName
+        )
         var appliedNames: [String] = []
+        var changed = false
         for direction in AudioDirection.allCases {
             let configuredID = direction == .input ? rule.inputDeviceID : rule.outputDeviceID
             let available = devices.filter { $0.direction == direction }
@@ -492,6 +616,7 @@ final class AppState: ObservableObject {
                 do {
                     try hardware.setDefaultDevice(target)
                     if direction == .input { defaultInputID = target.objectID } else { defaultOutputID = target.objectID }
+                    changed = true
                 } catch {
                     errorMessage = error.localizedDescription
                     record(.error, error.localizedDescription)
@@ -507,10 +632,68 @@ final class AppState: ObservableObject {
             showNotice(title: "\(rule.displayName) rule needs attention", detail: message)
             return
         }
-        let detail = "\(trigger): \(appliedNames.joined(separator: ", "))."
+        if !changed, activeAutomation?.source == source, activeAutomation?.name == rule.displayName { return }
+        let detail = "\(trigger). FOH chose \(appliedNames.joined(separator: " and "))."
+        if changed { undoState = previous }
+        activeAutomation = ActiveAutomation(source: source, name: rule.displayName, detail: detail)
         record(.applicationRuleApplied, detail)
         logger.info("Audio rule applied: \(rule.bundleIdentifier, privacy: .public)")
         showNotice(title: "\(rule.displayName) audio is ready", detail: detail)
+    }
+
+    private func applyScene(_ scene: AudioScene, trigger: String) {
+        let previous = AudioUndoState(
+            inputDeviceID: defaultInput?.id,
+            outputDeviceID: defaultOutput?.id,
+            actionName: scene.name
+        )
+        var choices: [String] = []
+        var changed = false
+        for direction in AudioDirection.allCases {
+            let configuredID = direction == .input ? scene.inputDeviceID : scene.outputDeviceID
+            guard let configuredID,
+                  let target = devices.first(where: { $0.id == configuredID && $0.direction == direction }) else { continue }
+            if !isDefault(target) {
+                do {
+                    try hardware.setDefaultDevice(target)
+                    if direction == .input { defaultInputID = target.objectID } else { defaultOutputID = target.objectID }
+                    changed = true
+                } catch {
+                    errorMessage = error.localizedDescription
+                    record(.error, error.localizedDescription)
+                    continue
+                }
+            }
+            choices.append("\(direction == .input ? "microphone" : "output") \(target.name)")
+        }
+        let detail = choices.isEmpty
+            ? "\(trigger). Connect or choose devices to finish this scene."
+            : "\(trigger). FOH chose \(choices.joined(separator: " and "))."
+        if !changed, activeAutomation?.source == .scene, activeAutomation?.name == scene.name { return }
+        if changed { undoState = previous }
+        activeAutomation = ActiveAutomation(source: .scene, name: scene.name, detail: detail)
+        record(.sceneChanged, detail)
+        showNotice(title: "\(scene.name) scene is active", detail: detail)
+    }
+
+    private func reconcileAutomation() {
+        guard !automationPaused else {
+            activeAutomation = nil
+            return
+        }
+        if let scene = activeScene {
+            applyScene(scene, trigger: "\(scene.name) scene is active")
+            return
+        }
+        if let domain = activeMeetingDomain, browserRule.isEnabled {
+            applyBrowserRule(trigger: "A meeting is open on \(domain)")
+            return
+        }
+        if let rule = applicationRules.first(where: { $0.isEnabled && runningApplicationIDs.contains($0.bundleIdentifier) }) {
+            applyApplicationRule(rule, source: .application, trigger: "\(rule.displayName) is running")
+            return
+        }
+        activeAutomation = nil
     }
 
     private func savePriorities() {
@@ -562,6 +745,19 @@ final class AppState: ObservableObject {
         return rule
     }
 
+    private func saveScenes() {
+        if let data = try? JSONEncoder().encode(scenes) {
+            defaults.set(data, forKey: Keys.scenes)
+        }
+    }
+
+    private static func loadScenes(from defaults: UserDefaults) -> [AudioScene] {
+        guard let data = defaults.data(forKey: Keys.scenes),
+              let scenes = try? JSONDecoder().decode([AudioScene].self, from: data),
+              !scenes.isEmpty else { return AudioScene.defaults }
+        return scenes
+    }
+
     private enum Keys {
         static let priorities = "devicePriorities.v1"
         static let automaticSwitching = "automaticSwitching.v1"
@@ -569,6 +765,10 @@ final class AppState: ObservableObject {
         static let zoomRule = "zoomAudioRule.v1"
         static let applicationRules = "applicationAudioRules.v2"
         static let browserRule = "browserAudioRule.v1"
+        static let scenes = "audioScenes.v1"
+        static let activeSceneID = "activeSceneID.v1"
+        static let onboardingCompleted = "onboardingCompleted.v1"
+        static let automationPaused = "automationPaused.v1"
     }
 
     private struct LegacyApplicationAudioRule: Codable {
