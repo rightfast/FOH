@@ -9,8 +9,6 @@ compression_level = 9
 
 files = [application]
 symlinks = {"Applications": "/Applications"}
-hide_extensions = ["FOH.app"]
-
 background = background_image
 window_rect = ((200, 120), (560, 340))
 default_view = "icon-view"

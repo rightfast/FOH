@@ -38,6 +38,12 @@ jobs:
           hdiutil verify build/release/FOH.dmg
           (cd build/release && shasum -a 256 -c FOH.dmg.sha256)
           codesign --verify --deep --strict build/release/FOH.xcarchive/Products/Applications/FOH.app
+          install_check="$RUNNER_TEMP/foh-install-check"
+          mkdir -p "$install_check"
+          device="$(hdiutil attach build/release/FOH.dmg -nobrowse -readonly | awk '/Apple_HFS/ {print $1; exit}')"
+          ditto /Volumes/FOH/FOH.app "$install_check/FOH.app"
+          codesign --verify --deep --strict --verbose=2 "$install_check/FOH.app"
+          hdiutil detach "$device"
 
       - name: Create or update numbered preview release
         run: |
