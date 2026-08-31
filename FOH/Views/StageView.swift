@@ -31,19 +31,21 @@ struct StageView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 28) {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Your audio stage")
-                            .font(.largeTitle.bold())
+                        HStack(alignment: .firstTextBaseline) {
+                            Text("Your audio stage")
+                                .font(.largeTitle.bold())
+                            Spacer()
+                            Label("Ready", systemImage: "checkmark.circle.fill")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.green)
+                        }
                         Text("See what’s connected and put the right gear onstage.")
                             .foregroundStyle(.secondary)
                     }
 
                     HStack(alignment: .top, spacing: 18) {
                         microphoneCard
-                        activeCard(
-                            title: "Listening",
-                            device: appState.defaultOutput,
-                            icon: "headphones"
-                        )
+                        listeningCard
                     }
 
                     capabilityPanel
@@ -80,28 +82,43 @@ struct StageView: View {
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
+    private var listeningCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label("Listening", systemImage: "headphones")
+                .font(.headline)
+                .foregroundStyle(.secondary)
+            Text(appState.defaultOutput?.name ?? "No device")
+                .font(.title2.weight(.semibold))
+            Text(appState.defaultOutput?.transport.rawValue ?? "Not connected")
+                .foregroundStyle(.secondary)
+            Divider()
+            HStack {
+                Label(
+                    appState.defaultOutput == nil ? "Unavailable" : "System default",
+                    systemImage: appState.defaultOutput == nil ? "exclamationmark.circle" : "checkmark.circle.fill"
+                )
+                .font(.caption.weight(.medium))
+                .foregroundStyle(appState.defaultOutput == nil ? Color.secondary : Color.green)
+                Spacer()
+                if let output = appState.defaultOutput {
+                    Text(outputCapability(output))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .frame(height: 48)
+        }
+        .padding(22)
+        .frame(maxWidth: .infinity, minHeight: 230, alignment: .leading)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+    }
+
     private func comingSoon(_ title: String, icon: String) -> some View {
         ContentUnavailableView(
             title,
             systemImage: icon,
             description: Text("This workspace will arrive after hardware behavior is verified.")
         )
-    }
-
-    private func activeCard(title: String, device: AudioDevice?, icon: String) -> some View {
-        VStack(alignment: .leading, spacing: 18) {
-            Label(title, systemImage: icon)
-                .font(.headline)
-                .foregroundStyle(.secondary)
-            Spacer(minLength: 8)
-            Text(device?.name ?? "No device")
-                .font(.title2.weight(.semibold))
-            Text(device?.transport.rawValue ?? "Not connected")
-                .foregroundStyle(.secondary)
-        }
-        .padding(22)
-        .frame(maxWidth: .infinity, minHeight: 230, alignment: .leading)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
     private var capabilityPanel: some View {
@@ -125,6 +142,12 @@ struct StageView: View {
         }
         .padding(22)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+    }
+
+    private func outputCapability(_ device: AudioDevice) -> String {
+        if device.canSetVolume { return "Volume adjustable" }
+        if device.canSetMute { return "Mute available" }
+        return "System controlled"
     }
 }
 

@@ -27,6 +27,12 @@ struct DeviceRow: View {
                         .foregroundStyle(Color.accentColor)
                 }
             }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+            .background(
+                isSelected ? Color.accentColor.opacity(0.12) : Color.clear,
+                in: RoundedRectangle(cornerRadius: 9, style: .continuous)
+            )
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -40,4 +46,3 @@ struct DeviceRow: View {
         return details.joined(separator: " · ")
     }
 }
-

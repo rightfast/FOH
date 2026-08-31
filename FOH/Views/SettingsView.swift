@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject private var appState: AppState
+    @EnvironmentObject private var microphoneMonitor: MicrophoneMonitor
 
     var body: some View {
         Form {
@@ -12,7 +13,8 @@ struct SettingsView: View {
             }
 
             Section("Privacy") {
-                Text("FOH currently reads audio-device metadata only. It does not capture, record, or transmit audio.")
+                LabeledContent("Input activity", value: microphoneMonitor.isEnabled ? "Enabled" : "Off")
+                Text("When you enable input activity, FOH analyzes microphone levels locally only while its window or menu is visible. Audio is never recorded, retained, or transmitted.")
                     .foregroundStyle(.secondary)
             }
         }
@@ -21,4 +23,3 @@ struct SettingsView: View {
         .padding()
     }
 }
-

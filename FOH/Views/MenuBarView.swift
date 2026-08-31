@@ -76,8 +76,12 @@ struct MenuBarView: View {
                 openWindow(id: "stage")
                 NSApp.activate(ignoringOtherApps: true)
             }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.small)
             Spacer()
             Button("Quit") { NSApp.terminate(nil) }
+                .buttonStyle(.plain)
+                .foregroundStyle(.secondary)
         }
         .padding(12)
     }

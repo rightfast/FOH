@@ -21,7 +21,15 @@ xcodegen generate
 xcodebuild -project FOH.xcodeproj -scheme FOH -configuration Debug build
 ```
 
+## Install
+
+FOH will ship as a signed and notarized DMG with a drag-to-Applications window.
+The same release artifact is prepared for a Right Fast Studio Homebrew tap and
+an optional checksum-verifying shell installer. See
+[`Docs/DISTRIBUTION.md`](Docs/DISTRIBUTION.md) for the release workflow and the
+current Developer ID prerequisite.
+
 ## Status
 
-FOH is pre-alpha. It does not capture or transmit audio.
-
+FOH is pre-alpha. Its opt-in waveform analyzes microphone levels locally while
+FOH is visible. Audio is never recorded, retained, or transmitted.

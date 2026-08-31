@@ -1,0 +1,18 @@
+cask "foh" do
+  version "__VERSION__"
+  sha256 "__SHA256__"
+
+  url "https://github.com/rightfast/FOH/releases/download/v#{version}/FOH.dmg"
+  name "FOH"
+  desc "Audio device priorities and input activity for everyday Mac setups"
+  homepage "https://github.com/rightfast/FOH"
+
+  depends_on macos: ">= :sonoma"
+
+  app "FOH.app"
+
+  zap trash: [
+    "~/Library/Preferences/studio.rightfast.foh.plist",
+    "~/Library/Saved Application State/studio.rightfast.foh.savedState",
+  ]
+end
