@@ -7,17 +7,13 @@ struct ScenesView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Scenes").font(.largeTitle.bold())
-                    Text("Choose a microphone and listening device together, then recall the setup in one click.")
-                        .foregroundStyle(.secondary)
-                }
+                FOHPageHeader(title: "Scenes", detail: "Choose a microphone and listening device together, then recall the setup in one click.")
 
                 if let active = appState.activeScene {
                     HStack(spacing: 12) {
                         Image(systemName: active.symbolName)
                             .font(.title2)
-                            .foregroundStyle(Color.accentColor)
+                            .foregroundStyle(FOHTheme.signal)
                         VStack(alignment: .leading, spacing: 2) {
                             Text("\(active.name) is active").font(.headline)
                             Text("It stays in control until you leave the scene.")
@@ -27,7 +23,8 @@ struct ScenesView: View {
                         Button("Leave Scene") { appState.deactivateScene() }
                     }
                     .padding(16)
-                    .background(Color.accentColor.opacity(0.1), in: RoundedRectangle(cornerRadius: 16))
+                    .background(FOHTheme.signal.opacity(0.07))
+                    .overlay(alignment: .bottom) { FOHSectionRule() }
                 }
 
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 300), spacing: 16)], spacing: 16) {
@@ -46,8 +43,9 @@ struct ScenesView: View {
                 .frame(maxWidth: 480)
             }
             .padding(32)
-            .frame(maxWidth: 900, alignment: .leading)
+            .frame(maxWidth: FOHTheme.pageWidth, alignment: .leading)
         }
+        .fohCanvas()
     }
 
     private func sceneCard(_ scene: AudioScene) -> some View {
@@ -62,7 +60,7 @@ struct ScenesView: View {
                 if isActive {
                     Text("ACTIVE")
                         .font(.caption2.bold())
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(FOHTheme.signal)
                 }
                 Menu {
                     Button("Delete Scene", role: .destructive) { appState.removeScene(scene.id) }
@@ -85,11 +83,12 @@ struct ScenesView: View {
             .disabled(isActive)
         }
         .padding(20)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .background(FOHTheme.panel)
         .overlay {
-            RoundedRectangle(cornerRadius: 18)
-                .stroke(isActive ? Color.accentColor : Color.clear, lineWidth: 1.5)
+            RoundedRectangle(cornerRadius: FOHTheme.panelRadius)
+                .stroke(isActive ? FOHTheme.signal : FOHTheme.rule, lineWidth: isActive ? 1.2 : 0.7)
         }
+        .clipShape(RoundedRectangle(cornerRadius: FOHTheme.panelRadius))
     }
 
     private func devicePicker(

@@ -25,19 +25,14 @@ struct OnboardingView: View {
     }
 
     private var backdrop: some View {
-        ZStack {
-            Color(nsColor: .windowBackgroundColor)
-            RadialGradient(colors: [Color.accentColor.opacity(0.16), .clear], center: .topTrailing, startRadius: 24, endRadius: 470)
-            Circle().fill(Color.purple.opacity(0.08)).frame(width: 300).blur(radius: 70).offset(x: -310, y: 240)
-        }
-        .ignoresSafeArea()
+        FOHTheme.canvas.ignoresSafeArea()
     }
 
     private var header: some View {
         HStack(spacing: 22) {
             HStack(spacing: 9) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 8).fill(Color.accentColor.gradient)
+                    RoundedRectangle(cornerRadius: 5).fill(FOHTheme.signal)
                     Image(systemName: "slider.horizontal.3").font(.system(size: 14, weight: .semibold)).foregroundStyle(.white)
                 }
                 .frame(width: 30, height: 30)
@@ -48,7 +43,7 @@ struct OnboardingView: View {
                 ForEach(steps.indices, id: \.self) { index in
                     HStack(spacing: 7) {
                         ZStack {
-                            Circle().fill(index <= step ? Color.accentColor : Color.secondary.opacity(0.15)).frame(width: 22, height: 22)
+                            Circle().fill(index <= step ? FOHTheme.signal : FOHTheme.rule).frame(width: 22, height: 22)
                             if index < step {
                                 Image(systemName: "checkmark").font(.system(size: 9, weight: .bold)).foregroundStyle(.white)
                             } else {
@@ -63,7 +58,7 @@ struct OnboardingView: View {
         }
         .padding(.horizontal, 28)
         .frame(height: 66)
-        .background(.ultraThinMaterial)
+        .background(FOHTheme.panel)
         .overlay(alignment: .bottom) { Divider().opacity(0.6) }
     }
 
@@ -88,23 +83,22 @@ struct OnboardingView: View {
             }
             .buttonStyle(.borderedProminent).controlSize(.large).keyboardShortcut(.defaultAction)
         }
-        .padding(.horizontal, 28).frame(height: 72).background(.ultraThinMaterial)
+        .padding(.horizontal, 28).frame(height: 72).background(FOHTheme.panel)
         .overlay(alignment: .top) { Divider().opacity(0.6) }
     }
 
     private var welcome: some View {
         HStack(spacing: 44) {
             VStack(alignment: .leading, spacing: 18) {
-                eyebrow("YOUR MAC, IN HARMONY")
                 Text("Sound check,\nwithout the scramble.")
-                    .font(.system(size: 38, weight: .bold, design: .rounded)).tracking(-0.7)
+                    .font(.system(size: 38, weight: .semibold)).tracking(-0.5)
                 Text("FOH keeps the right microphone and headphones ready—at your desk, on a call, or wherever work takes you.")
                     .font(.title3).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 Label("Everything stays on your Mac", systemImage: "lock.fill")
                     .font(.callout.weight(.medium)).foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            MiniMixingDesk().frame(width: 245, height: 270)
+            SignalDeskPreview().frame(width: 270, height: 270)
         }
         .padding(.horizontal, 48).padding(.vertical, 34)
     }
@@ -131,8 +125,8 @@ struct OnboardingView: View {
                         Toggle(isOn: Binding(get: { rule.isEnabled }, set: { appState.setApplicationRuleEnabled(rule.id, isEnabled: $0) })) {
                             HStack(spacing: 12) {
                                 Image(systemName: installed ? "video.fill" : "square.dashed")
-                                    .foregroundStyle(installed ? Color.accentColor : Color.secondary)
-                                    .frame(width: 28, height: 28).background(Color.secondary.opacity(0.1), in: RoundedRectangle(cornerRadius: 7))
+                                    .foregroundStyle(installed ? FOHTheme.signal : FOHTheme.muted)
+                                    .frame(width: 28, height: 28)
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(rule.displayName).font(.callout.weight(.semibold))
                                     Text(installed ? "Ready to configure" : "Not installed on this Mac").font(.caption).foregroundStyle(.secondary)
@@ -142,7 +136,8 @@ struct OnboardingView: View {
                         }
                         .toggleStyle(.switch).disabled(!installed).opacity(installed ? 1 : 0.52)
                         .padding(.horizontal, 14).frame(height: 54)
-                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 13))
+                        .background(FOHTheme.panel)
+                        .overlay(alignment: .bottom) { FOHSectionRule() }
                     }
                 }
             }
@@ -152,11 +147,16 @@ struct OnboardingView: View {
 
     private var privacy: some View {
         standardPage(eyebrow: "PRIVATE BY DESIGN", title: "Your audio is yours.", detail: "FOH works locally, without an account or cloud service. It listens for devices—not to you.") {
-            HStack(spacing: 12) {
+            VStack(spacing: 0) {
                 privacyCard(icon: "waveform", title: "No recordings", detail: "Activity is measured only when its meter is visible.")
+                FOHSectionRule()
                 privacyCard(icon: "person.crop.circle.badge.xmark", title: "No account", detail: "Open the app and get to work. Nothing to sign into.")
+                FOHSectionRule()
                 privacyCard(icon: "lock.shield.fill", title: "Safe diagnostics", detail: "Exports omit device names and stable identifiers.")
             }
+            .background(FOHTheme.panel)
+            .overlay { RoundedRectangle(cornerRadius: FOHTheme.panelRadius).stroke(FOHTheme.rule, lineWidth: 0.7) }
+            .clipShape(RoundedRectangle(cornerRadius: FOHTheme.panelRadius))
         }
     }
 
@@ -164,11 +164,10 @@ struct OnboardingView: View {
         VStack(spacing: 22) {
             ZStack {
                 ForEach(0..<3) { index in
-                    Circle().stroke(Color.accentColor.opacity(0.12 - Double(index) * 0.025), lineWidth: 1)
+                    Circle().stroke(FOHTheme.rule.opacity(0.7 - Double(index) * 0.12), lineWidth: 1)
                         .frame(width: CGFloat(126 + index * 42), height: CGFloat(126 + index * 42))
                 }
-                Circle().fill(Color.green.gradient).frame(width: 88, height: 88)
-                    .shadow(color: Color.green.opacity(0.28), radius: 24, y: 8)
+                Circle().fill(FOHTheme.live).frame(width: 88, height: 88)
                 Image(systemName: "checkmark").font(.system(size: 35, weight: .bold)).foregroundStyle(.white)
             }
             VStack(spacing: 8) {
@@ -186,8 +185,7 @@ struct OnboardingView: View {
     private func standardPage<Content: View>(eyebrow: String, title: String, detail: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 20) {
             VStack(alignment: .leading, spacing: 8) {
-                self.eyebrow(eyebrow)
-                Text(title).font(.system(size: 31, weight: .bold, design: .rounded)).tracking(-0.4)
+                Text(title).font(.system(size: 31, weight: .semibold)).tracking(-0.3)
                 Text(detail).font(.body).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
             content()
@@ -196,14 +194,10 @@ struct OnboardingView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
-    private func eyebrow(_ text: String) -> some View {
-        Text(text).font(.caption2.weight(.bold)).tracking(1.4).foregroundStyle(Color.accentColor)
-    }
-
     private func settingRow(icon: String, title: String, detail: String, isOn: Binding<Bool>) -> some View {
         Toggle(isOn: isOn) {
             HStack(spacing: 13) {
-                Image(systemName: icon).font(.title3).foregroundStyle(Color.accentColor).frame(width: 34)
+                Image(systemName: icon).font(.title3).foregroundStyle(FOHTheme.signal).frame(width: 34)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title).font(.callout.weight(.semibold))
                     Text(detail).font(.caption).foregroundStyle(.secondary)
@@ -211,28 +205,29 @@ struct OnboardingView: View {
             }
         }
         .toggleStyle(.switch).padding(.horizontal, 16).frame(height: 62)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
+        .background(FOHTheme.panel)
+        .overlay { RoundedRectangle(cornerRadius: FOHTheme.panelRadius).stroke(FOHTheme.rule, lineWidth: 0.7) }
     }
 
     private func summaryPill(icon: String, count: Int, label: String) -> some View {
         HStack(spacing: 10) {
-            Image(systemName: icon).foregroundStyle(Color.accentColor)
+            Image(systemName: icon).foregroundStyle(FOHTheme.signal)
             Text("\(count)").font(.headline.monospacedDigit())
             Text(label).font(.callout).foregroundStyle(.secondary)
         }
         .padding(.horizontal, 14).frame(height: 38)
-        .background(Color.accentColor.opacity(0.09), in: Capsule())
+        .background(FOHTheme.signal.opacity(0.07), in: RoundedRectangle(cornerRadius: 5))
     }
 
     private func privacyCard(icon: String, title: String, detail: String) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Image(systemName: icon).font(.title2).foregroundStyle(Color.accentColor)
-                .frame(width: 38, height: 38).background(Color.accentColor.opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
-            Text(title).font(.headline)
-            Text(detail).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+        HStack(alignment: .top, spacing: 14) {
+            Image(systemName: icon).font(.title3).foregroundStyle(FOHTheme.signal).frame(width: 28)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title).font(.headline)
+                Text(detail).font(.caption).foregroundStyle(FOHTheme.muted).fixedSize(horizontal: false, vertical: true)
+            }
         }
-        .padding(16).frame(maxWidth: .infinity, minHeight: 150, alignment: .topLeading)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
+        .padding(16).frame(maxWidth: .infinity, alignment: .topLeading)
     }
 
     private func readyFeature(icon: String, title: String) -> some View {
@@ -251,33 +246,39 @@ struct OnboardingView: View {
     private func optionWord(_ count: Int) -> String { count == 1 ? "option" : "options" }
 }
 
-private struct MiniMixingDesk: View {
-    private let channels: [(String, CGFloat, Color)] = [("MIC", 0.68, .cyan), ("OUT", 0.42, .purple)]
-
+private struct SignalDeskPreview: View {
     var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 28).fill(.regularMaterial).shadow(color: .black.opacity(0.14), radius: 28, y: 14)
-            RoundedRectangle(cornerRadius: 28).stroke(.white.opacity(0.18), lineWidth: 1)
-            HStack(spacing: 30) {
-                ForEach(Array(channels.enumerated()), id: \.offset) { _, channel in
-                    VStack(spacing: 12) {
-                        Circle().fill(channel.2).frame(width: 7, height: 7).shadow(color: channel.2.opacity(0.7), radius: 5)
-                        Text(channel.0).font(.system(size: 9, weight: .bold, design: .rounded)).tracking(1.1).foregroundStyle(.secondary)
-                        ZStack(alignment: .bottom) {
-                            Capsule().fill(Color.primary.opacity(0.11)).frame(width: 5, height: 135)
-                            Capsule().fill(channel.2.gradient).frame(width: 5, height: 135 * channel.1)
-                            RoundedRectangle(cornerRadius: 5).fill(.thickMaterial)
-                                .overlay(RoundedRectangle(cornerRadius: 5).stroke(.white.opacity(0.3)))
-                                .shadow(color: .black.opacity(0.18), radius: 4, y: 2).frame(width: 35, height: 18)
-                                .offset(y: -124 * channel.1 + 9)
-                        }
-                        Text("\(Int(channel.1 * 100))").font(.caption.monospacedDigit()).foregroundStyle(.secondary)
-                    }
-                }
-            }
-            .padding(.top, 12)
+        VStack(spacing: 0) {
+            route("MIC", device: "Desk microphone", icon: "mic")
+            FOHSectionRule()
+            route("OUT", device: "Headphones", icon: "headphones")
         }
+        .background(FOHTheme.panel)
+        .overlay { RoundedRectangle(cornerRadius: FOHTheme.panelRadius).stroke(FOHTheme.rule, lineWidth: 0.7) }
+        .clipShape(RoundedRectangle(cornerRadius: FOHTheme.panelRadius))
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("A two-channel mixing desk for microphone and listening devices")
+        .accessibilityLabel("Microphone and listening devices connected and ready")
+    }
+
+    private func route(_ label: String, device: String, icon: String) -> some View {
+        HStack(spacing: 10) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(label).font(.caption2.weight(.bold)).foregroundStyle(FOHTheme.muted)
+                Image(systemName: icon).font(.title2)
+            }
+            Rectangle().fill(FOHTheme.rule).frame(height: 1)
+            ZStack {
+                Circle().stroke(FOHTheme.live, lineWidth: 1).frame(width: 22, height: 22)
+                Image(systemName: "checkmark").font(.system(size: 8, weight: .bold)).foregroundStyle(FOHTheme.live)
+            }
+            Rectangle().fill(FOHTheme.rule).frame(height: 1)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(device).font(.caption.weight(.semibold))
+                Text("Ready").font(.caption2).foregroundStyle(FOHTheme.live)
+            }
+            .frame(width: 86, alignment: .leading)
+        }
+        .padding(16)
+        .frame(maxHeight: .infinity)
     }
 }

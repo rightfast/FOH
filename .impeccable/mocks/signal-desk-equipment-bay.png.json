@@ -1,0 +1,8 @@
+{
+  "approved": false,
+  "useCase": "ui-mockup",
+  "surface": "native macOS FOH Stage",
+  "direction": "Signal Desk",
+  "composition": "Equipment Bay",
+  "prompt": "Design the native macOS FOH Stage as two compact equipment bays for current input and output devices, priority rails, microphone activity, and a ruled activity log. Preserve the Signal Desk palette and native Mac conventions; avoid invented audio-processing capabilities."
+}

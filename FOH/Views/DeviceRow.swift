@@ -10,7 +10,7 @@ struct DeviceRow: View {
             HStack(spacing: 12) {
                 Image(systemName: device.direction.systemImage)
                     .frame(width: 24)
-                    .foregroundStyle(isSelected ? Color.accentColor : .secondary)
+                    .foregroundStyle(isSelected ? FOHTheme.signal : FOHTheme.muted)
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(device.name)
@@ -24,15 +24,15 @@ struct DeviceRow: View {
 
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(FOHTheme.live)
                 }
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 8)
-            .background(
-                isSelected ? Color.accentColor.opacity(0.12) : Color.clear,
-                in: RoundedRectangle(cornerRadius: 9, style: .continuous)
-            )
+            .background(isSelected ? FOHTheme.signal.opacity(0.07) : Color.clear)
+            .overlay(alignment: .leading) {
+                if isSelected { Rectangle().fill(FOHTheme.signal).frame(width: 2) }
+            }
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

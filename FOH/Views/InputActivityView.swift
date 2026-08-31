@@ -64,7 +64,7 @@ struct InputActivityView: View {
             if let errorMessage = monitor.errorMessage {
                 Text(errorMessage)
                     .font(.caption2)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(FOHTheme.danger)
             }
         }
     }
@@ -85,7 +85,7 @@ struct InputActivityView: View {
         let running = appState.defaultInput?.isRunning == true
         return Label(running ? "In use" : "Idle", systemImage: running ? "circle.fill" : "circle")
             .font(.caption2.weight(.medium))
-            .foregroundStyle(running ? .green : .secondary)
+            .foregroundStyle(running ? FOHTheme.live : FOHTheme.muted)
     }
 
     private var activityDescription: String {
@@ -113,7 +113,7 @@ private struct WaveformView: View {
                 )
                 context.fill(
                     Path(roundedRect: rect, cornerRadius: width / 2),
-                    with: .color(normalized > 0.82 ? .orange : .accentColor)
+                    with: .color(normalized > 0.82 ? FOHTheme.caution : FOHTheme.signal)
                 )
             }
         }

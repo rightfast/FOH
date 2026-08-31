@@ -9,12 +9,7 @@ struct AutomationsView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Automations")
-                            .font(.largeTitle.bold())
-                        Text("Put the right devices onstage when a work app opens.")
-                            .foregroundStyle(.secondary)
-                    }
+                    FOHPageHeader(title: "Automations", detail: "Put the right devices onstage when a work app opens.")
                     Spacer()
                     Button("Add Application…", systemImage: "plus") {
                         isAddingApplication = true
@@ -36,7 +31,7 @@ struct AutomationsView: View {
 
                 HStack(alignment: .top, spacing: 12) {
                     Image(systemName: "info.circle.fill")
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(FOHTheme.signal)
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Use “Same as System” inside your apps")
                             .font(.headline)
@@ -46,12 +41,13 @@ struct AutomationsView: View {
                     }
                 }
                 .padding(18)
-                .background(Color.accentColor.opacity(0.08), in: RoundedRectangle(cornerRadius: 15))
+                .background(FOHTheme.signal.opacity(0.06))
+                .overlay(alignment: .bottom) { FOHSectionRule() }
             }
             .padding(32)
             .frame(maxWidth: 820, alignment: .leading)
         }
-        .background(Color(nsColor: .windowBackgroundColor))
+        .fohCanvas()
         .fileImporter(
             isPresented: $isAddingApplication,
             allowedContentTypes: [.applicationBundle],
@@ -81,11 +77,14 @@ struct AutomationsView: View {
             Text(title)
                 .font(.headline)
                 .foregroundStyle(.secondary)
-            LazyVStack(spacing: 12) {
+            LazyVStack(spacing: 0) {
                 ForEach(rules) { rule in
                     ApplicationRuleCard(ruleID: rule.id)
                 }
             }
+            .background(FOHTheme.panel)
+            .overlay { RoundedRectangle(cornerRadius: FOHTheme.panelRadius).stroke(FOHTheme.rule, lineWidth: 0.7) }
+            .clipShape(RoundedRectangle(cornerRadius: FOHTheme.panelRadius))
         }
     }
 
@@ -118,7 +117,7 @@ private struct AutomationReadinessCard: View {
         HStack(spacing: 14) {
             Image(systemName: isActive ? "waveform.circle.fill" : enabledCount > 0 ? "checkmark.circle.fill" : "circle.dashed")
                 .font(.title2)
-                .foregroundStyle(isActive ? Color.green : enabledCount > 0 ? Color.accentColor : Color.secondary)
+                .foregroundStyle(isActive ? FOHTheme.live : enabledCount > 0 ? FOHTheme.signal : FOHTheme.muted)
             VStack(alignment: .leading, spacing: 3) {
                 Text(isActive ? "FOH is managing your audio" : enabledCount > 0 ? "FOH is ready for your next call" : "Choose where FOH should step in")
                     .font(.headline)
@@ -130,18 +129,14 @@ private struct AutomationReadinessCard: View {
             if isActive {
                 Text("ACTIVE")
                     .font(.caption2.bold())
-                    .foregroundStyle(.green)
+                    .foregroundStyle(FOHTheme.live)
                     .padding(.horizontal, 9)
                     .padding(.vertical, 5)
-                    .background(Color.green.opacity(0.12), in: Capsule())
+                    .background(FOHTheme.live.opacity(0.1), in: RoundedRectangle(cornerRadius: 4))
             }
         }
-        .padding(18)
-        .background(Color.accentColor.opacity(0.07), in: RoundedRectangle(cornerRadius: 15))
-        .overlay {
-            RoundedRectangle(cornerRadius: 15)
-                .strokeBorder(Color.accentColor.opacity(0.14))
-        }
+        .padding(.vertical, 12)
+        .overlay(alignment: .bottom) { FOHSectionRule() }
     }
 }
 
@@ -154,15 +149,14 @@ private struct BrowserMeetingRuleCard: View {
             HStack(spacing: 14) {
                 Image(systemName: "globe")
                     .font(.title2)
-                    .foregroundStyle(Color.purple)
-                    .frame(width: 42, height: 42)
-                    .background(Color.purple.opacity(0.12), in: RoundedRectangle(cornerRadius: 11))
+                    .foregroundStyle(FOHTheme.signal)
+                    .frame(width: 34)
                 VStack(alignment: .leading, spacing: 3) {
                     Text("Browser meetings")
                         .font(.title3.bold())
                     Text(browserStatus)
                         .font(.caption)
-                        .foregroundStyle(appState.activeMeetingDomain == nil ? Color.secondary : Color.green)
+                        .foregroundStyle(appState.activeMeetingDomain == nil ? FOHTheme.muted : FOHTheme.live)
                 }
                 Spacer()
                 Toggle("Enable browser meeting automation", isOn: Binding(
@@ -175,7 +169,7 @@ private struct BrowserMeetingRuleCard: View {
             if appState.browserPermissionDenied {
                 Label("Browser access was denied. Allow FOH in System Settings › Privacy & Security › Automation.", systemImage: "exclamationmark.triangle.fill")
                     .font(.callout)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(FOHTheme.caution)
             }
 
             if appState.browserRule.isEnabled {
@@ -246,7 +240,9 @@ private struct BrowserMeetingRuleCard: View {
             }
         }
         .padding(22)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18))
+        .background(FOHTheme.panel)
+        .overlay { RoundedRectangle(cornerRadius: FOHTheme.panelRadius).stroke(FOHTheme.rule, lineWidth: 0.7) }
+        .clipShape(RoundedRectangle(cornerRadius: FOHTheme.panelRadius))
     }
 
     private var browserStatus: String {
@@ -296,9 +292,8 @@ private struct ApplicationRuleCard: View {
                 HStack(spacing: 14) {
                     Image(systemName: iconName(for: rule.bundleIdentifier))
                         .font(.title2)
-                        .foregroundStyle(installed ? Color.accentColor : Color.secondary)
-                        .frame(width: 42, height: 42)
-                        .background((installed ? Color.accentColor : Color.secondary).opacity(0.12), in: RoundedRectangle(cornerRadius: 11))
+                        .foregroundStyle(installed ? FOHTheme.signal : FOHTheme.muted)
+                        .frame(width: 34)
 
                     VStack(alignment: .leading, spacing: 3) {
                         Text(rule.displayName)
@@ -350,8 +345,8 @@ private struct ApplicationRuleCard: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            .padding(installed && rule.isEnabled ? 22 : 16)
-            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18))
+            .padding(installed && rule.isEnabled ? 20 : 16)
+            .overlay(alignment: .bottom) { FOHSectionRule() }
             .opacity(installed ? 1 : 0.62)
         }
     }
@@ -360,7 +355,7 @@ private struct ApplicationRuleCard: View {
     private func status(for rule: ApplicationAudioRule, installed: Bool) -> some View {
         if appState.isApplicationRunning(rule) {
             Text("●  Running now")
-                .foregroundStyle(.green)
+                .foregroundStyle(FOHTheme.live)
                 .font(.caption)
         } else if installed {
             Text("○  Installed")

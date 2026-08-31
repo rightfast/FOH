@@ -44,6 +44,7 @@ struct CallCheckView: View {
             .padding(20)
         }
         .frame(minWidth: 560, minHeight: 460)
+        .fohCanvas()
         .onAppear { appState.refresh() }
     }
 
@@ -55,7 +56,8 @@ struct CallCheckView: View {
                 .environmentObject(appState)
                 .environmentObject(microphoneMonitor)
                 .padding(18)
-                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
+                .background(FOHTheme.panel)
+                .overlay { RoundedRectangle(cornerRadius: FOHTheme.panelRadius).stroke(FOHTheme.rule, lineWidth: 0.7) }
         }
     }
 
@@ -73,7 +75,7 @@ struct CallCheckView: View {
             .controlSize(.large)
             .disabled(appState.defaultOutput == nil || outputTonePlayer.isPlaying)
             if let error = outputTonePlayer.errorMessage {
-                Text(error).font(.caption).foregroundStyle(.red)
+                Text(error).font(.caption).foregroundStyle(FOHTheme.danger)
             }
         }
     }
@@ -95,7 +97,7 @@ struct CallCheckView: View {
         VStack(spacing: 18) {
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 64))
-                .foregroundStyle(.green)
+                .foregroundStyle(FOHTheme.live)
             Text("You’re ready for the call").font(.largeTitle.bold())
             Text("FOH is using \(appState.defaultInput?.name ?? "your microphone") and \(appState.defaultOutput?.name ?? "your listening device").")
                 .foregroundStyle(.secondary)
@@ -107,8 +109,8 @@ struct CallCheckView: View {
 
     private func stepHeader(_ title: String, _ detail: String, _ icon: String) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Image(systemName: icon).font(.title).foregroundStyle(Color.accentColor)
-            Text(title).font(.largeTitle.bold())
+            Image(systemName: icon).font(.title2).foregroundStyle(FOHTheme.signal)
+            Text(title).font(.system(size: 28, weight: .semibold))
             Text(detail).foregroundStyle(.secondary)
         }
     }
@@ -116,7 +118,7 @@ struct CallCheckView: View {
     private func deviceStatus(_ name: String, available: Bool) -> some View {
         HStack {
             Image(systemName: available ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                .foregroundStyle(available ? .green : .orange)
+                .foregroundStyle(available ? FOHTheme.live : FOHTheme.caution)
             Text(name).font(.headline)
         }
     }
@@ -126,9 +128,10 @@ struct CallCheckView: View {
             Text(label).foregroundStyle(.secondary)
             Spacer()
             Label(value, systemImage: good ? "checkmark.circle.fill" : "circle")
-                .foregroundStyle(good ? Color.green : Color.secondary)
+                .foregroundStyle(good ? FOHTheme.live : FOHTheme.muted)
         }
         .padding(14)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+        .background(FOHTheme.panel)
+        .overlay(alignment: .bottom) { FOHSectionRule() }
     }
 }

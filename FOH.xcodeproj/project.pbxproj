@@ -29,6 +29,7 @@
 		65A8647F953A5305F32A5BBF /* CoreAudioError.swift in Sources */ = {isa = PBXBuildFile; fileRef = D98A5C1E1F878AE9143DF30E /* CoreAudioError.swift */; };
 		69D8F2F4DEBD2F67356B8C78 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 196F0675CB25E58269B609E9 /* OnboardingView.swift */; };
 		6AE70F0FC835F5A72A46EB5F /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75443ACC537AE173753AE8BC /* HistoryView.swift */; };
+		7103CBABA9E852A1F5B73D7D /* FOHTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 009FDF363305A79ECFCF12D0 /* FOHTheme.swift */; };
 		7D0980C7B79BEA91686D7A99 /* AutomationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEBB624EA47E76118351DBB1 /* AutomationsView.swift */; };
 		91DC25C8209D75E6FD7DC298 /* DevicePriority.swift in Sources */ = {isa = PBXBuildFile; fileRef = 184FBDBE0839C804CCD6AFF7 /* DevicePriority.swift */; };
 		9732B9C3AC1B6BFC3416F277 /* AudioDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14AE62CA8DA75D4B1343890B /* AudioDevice.swift */; };
@@ -55,6 +56,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		009FDF363305A79ECFCF12D0 /* FOHTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FOHTheme.swift; sourceTree = "<group>"; };
 		0DEE6EA26F3B8FAF87110910 /* InputActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputActivityView.swift; sourceTree = "<group>"; };
 		11CD52D596CD61039C94831B /* ScenesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScenesView.swift; sourceTree = "<group>"; };
 		14AE62CA8DA75D4B1343890B /* AudioDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDevice.swift; sourceTree = "<group>"; };
@@ -149,6 +151,7 @@
 				78F192FF3FCA3BDE48C2938E /* DevicePrioritiesView.swift */,
 				EF5A485CBDF61184AC74DBBB /* DeviceRow.swift */,
 				271B4476B0938180874E699E /* DiagnosticsView.swift */,
+				009FDF363305A79ECFCF12D0 /* FOHTheme.swift */,
 				75443ACC537AE173753AE8BC /* HistoryView.swift */,
 				0DEE6EA26F3B8FAF87110910 /* InputActivityView.swift */,
 				A91CACA95B8289830372CDC4 /* MenuBarView.swift */,
@@ -319,6 +322,7 @@
 				5F1E9367D56E806E616DC406 /* DiagnosticReport.swift in Sources */,
 				A94502EF1636806D9242C51D /* DiagnosticsView.swift in Sources */,
 				43C0F948033485A25E81917F /* FOHApp.swift in Sources */,
+				7103CBABA9E852A1F5B73D7D /* FOHTheme.swift in Sources */,
 				6AE70F0FC835F5A72A46EB5F /* HistoryView.swift in Sources */,
 				F4D335187EA7BD36080A3415 /* InputActivityView.swift in Sources */,
 				195F38A4237D3B3647B1F3B7 /* LaunchAtLoginController.swift in Sources */,

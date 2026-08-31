@@ -7,12 +7,7 @@ struct HistoryView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
                 HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Activity history")
-                            .font(.largeTitle.bold())
-                        Text("A local record of device changes and decisions FOH made this session.")
-                            .foregroundStyle(.secondary)
-                    }
+                    FOHPageHeader(title: "Activity history", detail: "A local record of device changes and decisions FOH made this session.")
                     Spacer()
                     Button("Clear", role: .destructive) { appState.clearHistory() }
                         .disabled(appState.events.isEmpty)
@@ -46,12 +41,14 @@ struct HistoryView: View {
                         }
                     }
                     .padding(.horizontal, 18)
-                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .background(FOHTheme.panel)
+                    .overlay { RoundedRectangle(cornerRadius: FOHTheme.panelRadius).stroke(FOHTheme.rule, lineWidth: 0.7) }
+                    .clipShape(RoundedRectangle(cornerRadius: FOHTheme.panelRadius))
                 }
             }
             .padding(32)
             .frame(maxWidth: 900, alignment: .leading)
         }
-        .background(Color(nsColor: .windowBackgroundColor))
+        .fohCanvas()
     }
 }

@@ -19,17 +19,23 @@ struct StageView: View {
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .foregroundStyle(selection == section ? Color.white : Color.primary)
+                    .foregroundStyle(selection == section ? FOHTheme.signal : FOHTheme.ink)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 8)
                     .background(
-                        selection == section ? Color.accentColor : Color.clear,
-                        in: RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        selection == section ? FOHTheme.signal.opacity(0.09) : Color.clear,
+                        in: RoundedRectangle(cornerRadius: 5, style: .continuous)
                     )
+                    .overlay(alignment: .leading) {
+                        if selection == section {
+                            Rectangle().fill(FOHTheme.signal).frame(width: 2, height: 20)
+                        }
+                    }
                 }
                 Spacer()
             }
             .padding(10)
+            .background(FOHTheme.panel)
             .navigationSplitViewColumnWidth(min: 180, ideal: 210)
         } detail: {
             switch selection ?? .stage {
@@ -68,30 +74,21 @@ struct StageView: View {
                     if let notice = appState.automationNotice {
                         automationBanner(notice)
                     }
-                    VStack(alignment: .leading, spacing: 6) {
-                        HStack(alignment: .firstTextBaseline) {
-                            Text("Your audio stage")
-                                .font(.largeTitle.bold())
-                            Spacer()
-                            Label(appState.automationPaused ? "Paused" : "Ready", systemImage: appState.automationPaused ? "pause.circle.fill" : "checkmark.circle.fill")
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(appState.automationPaused ? .orange : .green)
-                        }
-                        Text("See what’s connected and put the right gear onstage.")
-                            .foregroundStyle(.secondary)
-                    }
+                    FOHPageHeader(
+                        title: "Your audio stage",
+                        detail: "See what’s connected and which devices currently have the signal.",
+                        status: appState.automationPaused ? "Paused" : "Ready",
+                        statusKind: appState.automationPaused ? .paused : .ready
+                    )
 
-                    HStack(alignment: .top, spacing: 18) {
-                        microphoneCard
-                        listeningCard
-                    }
+                    signalRoutes
 
                     capabilityPanel
                 }
                 .padding(32)
-                .frame(maxWidth: 900, alignment: .leading)
+                .frame(maxWidth: FOHTheme.pageWidth, alignment: .leading)
             }
-            .background(Color(nsColor: .windowBackgroundColor))
+            .fohCanvas()
             .toolbar {
                 Button {
                     openWindow(id: "call-check")
@@ -110,7 +107,7 @@ struct StageView: View {
         HStack(spacing: 12) {
             Image(systemName: "bolt.circle.fill")
                 .font(.title2)
-                .foregroundStyle(Color.accentColor)
+                .foregroundStyle(FOHTheme.signal)
             VStack(alignment: .leading, spacing: 2) {
                 Text(notice.title).font(.headline)
                 Text(notice.detail).font(.caption).foregroundStyle(.secondary)
@@ -121,58 +118,86 @@ struct StageView: View {
             }
         }
         .padding(14)
-        .background(Color.accentColor.opacity(0.1), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .background(FOHTheme.signal.opacity(0.07))
+        .overlay(alignment: .bottom) { FOHSectionRule() }
         .transition(.move(edge: .top).combined(with: .opacity))
     }
 
-    private var microphoneCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Label("Microphone", systemImage: "mic.fill")
-                .font(.headline)
-                .foregroundStyle(.secondary)
-            Text(appState.defaultInput?.name ?? "No device")
-                .font(.title2.weight(.semibold))
-            Text(appState.defaultInput?.transport.rawValue ?? "Not connected")
-                .foregroundStyle(.secondary)
-            Divider()
-            InputActivityView()
-                .environmentObject(appState)
-                .environmentObject(microphoneMonitor)
+    private var signalRoutes: some View {
+        VStack(spacing: 0) {
+            signalRoute(
+                title: "Microphone",
+                icon: "mic",
+                device: appState.defaultInput,
+                alternatives: appState.inputDevices.filter { !appState.isDefault($0) },
+                accessory: AnyView(InputActivityView().environmentObject(appState).environmentObject(microphoneMonitor))
+            )
+            FOHSectionRule()
+            signalRoute(
+                title: "Listening",
+                icon: "headphones",
+                device: appState.defaultOutput,
+                alternatives: appState.outputDevices.filter { !appState.isDefault($0) },
+                accessory: AnyView(
+                    Text(appState.defaultOutput.map(outputCapability) ?? "Connect a listening device")
+                        .font(.caption).foregroundStyle(FOHTheme.muted)
+                )
+            )
         }
-        .padding(22)
-        .frame(maxWidth: .infinity, minHeight: 230, alignment: .leading)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .background(FOHTheme.panel)
+        .overlay { RoundedRectangle(cornerRadius: FOHTheme.panelRadius).stroke(FOHTheme.rule, lineWidth: 0.7) }
+        .clipShape(RoundedRectangle(cornerRadius: FOHTheme.panelRadius))
     }
 
-    private var listeningCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Label("Listening", systemImage: "headphones")
-                .font(.headline)
-                .foregroundStyle(.secondary)
-            Text(appState.defaultOutput?.name ?? "No device")
-                .font(.title2.weight(.semibold))
-            Text(appState.defaultOutput?.transport.rawValue ?? "Not connected")
-                .foregroundStyle(.secondary)
-            Divider()
-            HStack {
-                Label(
-                    appState.defaultOutput == nil ? "Unavailable" : "System default",
-                    systemImage: appState.defaultOutput == nil ? "exclamationmark.circle" : "checkmark.circle.fill"
-                )
-                .font(.caption.weight(.medium))
-                .foregroundStyle(appState.defaultOutput == nil ? Color.secondary : Color.green)
-                Spacer()
-                if let output = appState.defaultOutput {
-                    Text(outputCapability(output))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+    private func signalRoute(
+        title: String,
+        icon: String,
+        device: AudioDevice?,
+        alternatives: [AudioDevice],
+        accessory: AnyView
+    ) -> some View {
+        HStack(alignment: .center, spacing: 14) {
+            VStack(alignment: .leading, spacing: 10) {
+                Label(title, systemImage: icon).font(.headline)
+                accessory
+            }
+            .frame(width: 205, alignment: .leading)
+
+            HStack(spacing: 0) {
+                Rectangle().fill(FOHTheme.rule).frame(height: 1)
+                ZStack {
+                    Circle().fill(FOHTheme.panel).frame(width: 22, height: 22)
+                    Circle().stroke(FOHTheme.live, lineWidth: 1).frame(width: 22, height: 22)
+                    Image(systemName: "checkmark").font(.system(size: 9, weight: .bold)).foregroundStyle(FOHTheme.live)
+                }
+                Rectangle().fill(FOHTheme.rule).frame(height: 1)
+            }
+            .frame(minWidth: 64, maxWidth: .infinity)
+
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 3) {
+                        FOHStatusMark(device == nil ? "Unavailable" : "Active", kind: device == nil ? .warning : .active)
+                        Text(device?.name ?? "No device")
+                            .font(.headline)
+                        Text(device?.transport.rawValue ?? "Not connected")
+                            .font(.caption).foregroundStyle(FOHTheme.muted)
+                    }
+                    Spacer()
+                }
+                if !alternatives.isEmpty {
+                    Text("Available: " + alternatives.prefix(2).map(\.name).joined(separator: ", "))
+                        .font(.caption).foregroundStyle(FOHTheme.muted).lineLimit(1)
                 }
             }
-            .frame(height: 48)
+            .padding(14)
+            .frame(width: 240, alignment: .leading)
+            .background(FOHTheme.raised)
+            .overlay { RoundedRectangle(cornerRadius: 5).stroke(device == nil ? FOHTheme.rule : FOHTheme.live, lineWidth: 0.8) }
+            .clipShape(RoundedRectangle(cornerRadius: 5))
         }
-        .padding(22)
-        .frame(maxWidth: .infinity, minHeight: 230, alignment: .leading)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .padding(20)
+        .frame(maxWidth: .infinity, minHeight: 160, alignment: .leading)
     }
 
     private func comingSoon(_ title: String, icon: String) -> some View {
@@ -203,7 +228,9 @@ struct StageView: View {
             }
         }
         .padding(22)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .background(FOHTheme.panel)
+        .overlay { RoundedRectangle(cornerRadius: FOHTheme.panelRadius).stroke(FOHTheme.rule, lineWidth: 0.7) }
+        .clipShape(RoundedRectangle(cornerRadius: FOHTheme.panelRadius))
     }
 
     private func outputCapability(_ device: AudioDevice) -> String {

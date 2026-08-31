@@ -5,3 +5,5 @@ DerivedData*/
 build/
 *.xcuserstate
 xcuserdata/
+.impeccable/build/
+.impeccable/review/

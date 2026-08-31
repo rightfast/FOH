@@ -1,0 +1,8 @@
+{
+  "approved": false,
+  "useCase": "ui-mockup",
+  "surface": "native macOS FOH Stage",
+  "direction": "Signal Desk",
+  "composition": "Cue Strip",
+  "prompt": "Design the native macOS FOH Stage as one continuous ruled operating sheet with Microphone and Listening cue strips, truthful device priorities, microphone activity, automation status, recent changes, and connected devices. Preserve the Signal Desk palette and avoid invented DSP or mixing controls."
+}

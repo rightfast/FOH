@@ -1,0 +1,9 @@
+{
+  "approved": true,
+  "useCase": "ui-mockup",
+  "surface": "native macOS FOH Stage",
+  "direction": "Signal Desk",
+  "composition": "Route Map",
+  "prompt": "Design a high-fidelity native macOS FOH Stage screen using the locked Signal Desk visual system. Use a warm bone ground, graphite type, signal orange for selection and primary action, deep green only for confirmed ready state, and one-pixel rules. A native sidebar leads to two parallel signal routes for Microphone and Listening, connecting available devices to MacBook Pro Microphone and GLKVM as active defaults. Include truthful microphone activity and connected-device information. Avoid blue, gradients, glassmorphism, floating rounded-card grids, pills, decorative icon tiles, oversized copy, invented capabilities, DSP, per-app mixing, and marketing-page composition.",
+  "doNotLiteralize": ["Add device action", "output activity meter", "large decorative device icons", "extra enclosing card borders"]
+}

@@ -16,9 +16,15 @@ struct DiagnosticsView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         Text(direction.title)
                             .font(.title2.bold())
-                        ForEach(devices) { device in
-                            DiagnosticDeviceCard(device: device, isDefault: appState.isDefault(device))
+                        VStack(spacing: 0) {
+                            ForEach(Array(devices.enumerated()), id: \.element.id) { index, device in
+                                DiagnosticDeviceCard(device: device, isDefault: appState.isDefault(device))
+                                if index < devices.count - 1 { FOHSectionRule() }
+                            }
                         }
+                        .background(FOHTheme.panel)
+                        .overlay { RoundedRectangle(cornerRadius: FOHTheme.panelRadius).stroke(FOHTheme.rule, lineWidth: 0.7) }
+                        .clipShape(RoundedRectangle(cornerRadius: FOHTheme.panelRadius))
                     }
                 }
 
@@ -27,7 +33,7 @@ struct DiagnosticsView: View {
             .padding(32)
             .frame(maxWidth: 980, alignment: .leading)
         }
-        .background(Color(nsColor: .windowBackgroundColor))
+        .fohCanvas()
         .fileExporter(
             isPresented: $isExporting,
             document: DiagnosticReportDocument(report: appState.diagnosticReport),
@@ -53,25 +59,22 @@ struct DiagnosticsView: View {
     }
 
     private var header: some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Hardware diagnostics")
-                    .font(.largeTitle.bold())
-                Text("Inspect what each connected audio endpoint actually supports.")
-                    .foregroundStyle(.secondary)
-            }
-            Spacer()
-            Label("Audio stays local", systemImage: "lock.shield.fill")
-                .font(.callout.weight(.medium))
-                .foregroundStyle(.green)
-        }
+        FOHPageHeader(
+            title: "Hardware diagnostics",
+            detail: "Inspect what each connected audio endpoint actually supports.",
+            status: "Audio stays local",
+            statusKind: .ready
+        )
     }
 
     private var summary: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 0) {
             summaryItem("Endpoints", value: "\(appState.devices.count)", icon: "hifispeaker.2")
+            FOHSectionRule().frame(width: 1)
             summaryItem("Inputs", value: "\(appState.inputDevices.count)", icon: "mic")
+            FOHSectionRule().frame(width: 1)
             summaryItem("Outputs", value: "\(appState.outputDevices.count)", icon: "speaker.wave.2")
+            FOHSectionRule().frame(width: 1)
             summaryItem("Events", value: "\(appState.events.count)", icon: "waveform.path.ecg")
         }
     }
@@ -86,7 +89,6 @@ struct DiagnosticsView: View {
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 
     private var eventHistory: some View {
@@ -123,7 +125,9 @@ struct DiagnosticsView: View {
                     }
                 }
                 .padding(.horizontal, 16)
-                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .background(FOHTheme.panel)
+                .overlay { RoundedRectangle(cornerRadius: FOHTheme.panelRadius).stroke(FOHTheme.rule, lineWidth: 0.7) }
+                .clipShape(RoundedRectangle(cornerRadius: FOHTheme.panelRadius))
             }
         }
     }
@@ -138,7 +142,7 @@ private struct DiagnosticDeviceCard: View {
             HStack {
                 Image(systemName: device.direction.systemImage)
                     .font(.title2)
-                    .foregroundStyle(isDefault ? Color.accentColor : .secondary)
+                    .foregroundStyle(isDefault ? FOHTheme.signal : FOHTheme.muted)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(device.name)
                         .font(.headline)
@@ -152,8 +156,8 @@ private struct DiagnosticDeviceCard: View {
                         .font(.caption2.bold())
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
-                        .background(Color.accentColor.opacity(0.15), in: Capsule())
-                        .foregroundStyle(Color.accentColor)
+                        .background(FOHTheme.signal.opacity(0.09), in: RoundedRectangle(cornerRadius: 4))
+                        .foregroundStyle(FOHTheme.signal)
                 }
                 statusBadge
             }
@@ -168,13 +172,12 @@ private struct DiagnosticDeviceCard: View {
             .textSelection(.enabled)
         }
         .padding(18)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
     private var statusBadge: some View {
         Label(device.isAlive ? "Available" : "Unavailable", systemImage: device.isAlive ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
             .font(.caption)
-            .foregroundStyle(device.isAlive ? .green : .orange)
+            .foregroundStyle(device.isAlive ? FOHTheme.live : FOHTheme.caution)
     }
 
     private var sampleRate: String {
@@ -224,11 +227,10 @@ extension DiagnosticEventKind {
 
     var tint: Color {
         switch self {
-        case .error: .red
-        case .deviceConnected, .preferredRestored, .applicationRuleApplied, .onboardingCompleted: .green
-        case .deviceDisconnected: .orange
-        case .automaticFallback: .purple
-        default: .accentColor
+        case .error: FOHTheme.danger
+        case .deviceConnected, .preferredRestored, .applicationRuleApplied, .onboardingCompleted: FOHTheme.live
+        case .deviceDisconnected, .automaticFallback: FOHTheme.caution
+        default: FOHTheme.signal
         }
     }
 }

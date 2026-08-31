@@ -6,29 +6,20 @@ struct DevicePrioritiesView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                header
+                FOHPageHeader(title: "Device priorities", detail: "FOH picks the first available device in each list when your setup changes.")
                 automationCard
                 ForEach(AudioDirection.allCases, id: \.self) { direction in
                     priorityCard(direction)
                 }
             }
             .padding(32)
-            .frame(maxWidth: 900, alignment: .leading)
+            .frame(maxWidth: FOHTheme.pageWidth, alignment: .leading)
         }
-        .background(Color(nsColor: .windowBackgroundColor))
+        .fohCanvas()
         .toolbar {
             Button("Reset order", systemImage: "arrow.counterclockwise") {
                 appState.resetPriorities()
             }
-        }
-    }
-
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("Device priorities")
-                .font(.largeTitle.bold())
-            Text("FOH picks the first available device in each list when your setup changes.")
-                .foregroundStyle(.secondary)
         }
     }
 
@@ -51,7 +42,9 @@ struct DevicePrioritiesView: View {
                 .foregroundStyle(.secondary)
         }
         .padding(20)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(FOHTheme.panel)
+        .overlay { RoundedRectangle(cornerRadius: FOHTheme.panelRadius).stroke(FOHTheme.rule, lineWidth: 0.7) }
+        .clipShape(RoundedRectangle(cornerRadius: FOHTheme.panelRadius))
     }
 
     private func priorityCard(_ direction: AudioDirection) -> some View {
@@ -77,7 +70,9 @@ struct DevicePrioritiesView: View {
             }
         }
         .padding(20)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(FOHTheme.panel)
+        .overlay { RoundedRectangle(cornerRadius: FOHTheme.panelRadius).stroke(FOHTheme.rule, lineWidth: 0.7) }
+        .clipShape(RoundedRectangle(cornerRadius: FOHTheme.panelRadius))
     }
 
     private func priorityRow(_ priority: DevicePriority, position: Int, count: Int) -> some View {
@@ -96,7 +91,7 @@ struct DevicePrioritiesView: View {
                     if device.map(appState.isDefault) == true {
                         Text("IN USE")
                             .font(.caption2.bold())
-                            .foregroundStyle(Color.accentColor)
+                            .foregroundStyle(FOHTheme.signal)
                     }
                 }
                 Label(
@@ -104,7 +99,7 @@ struct DevicePrioritiesView: View {
                     systemImage: device == nil ? "circle.dashed" : "checkmark.circle.fill"
                 )
                 .font(.caption)
-                .foregroundStyle(device == nil ? Color.secondary : Color.green)
+                .foregroundStyle(device == nil ? FOHTheme.muted : FOHTheme.live)
             }
 
             Spacer()

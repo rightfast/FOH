@@ -14,6 +14,7 @@ struct FOHApp: App {
                 .environmentObject(microphoneMonitor)
                 .environmentObject(outputTonePlayer)
                 .frame(minWidth: 760, minHeight: 520)
+                .tint(FOHTheme.signal)
         }
 
         WindowGroup(id: "call-check") {
@@ -21,6 +22,7 @@ struct FOHApp: App {
                 .environmentObject(appState)
                 .environmentObject(microphoneMonitor)
                 .environmentObject(outputTonePlayer)
+                .tint(FOHTheme.signal)
         }
         .windowResizability(.contentSize)
 
@@ -29,6 +31,7 @@ struct FOHApp: App {
                 .environmentObject(appState)
                 .environmentObject(microphoneMonitor)
                 .environmentObject(outputTonePlayer)
+                .tint(FOHTheme.signal)
         } label: {
             Image("FOHMenuBarTemplate")
                 .renderingMode(.template)
@@ -41,6 +44,7 @@ struct FOHApp: App {
                 .environmentObject(appState)
                 .environmentObject(microphoneMonitor)
                 .environmentObject(launchAtLoginController)
+                .tint(FOHTheme.signal)
         }
     }
 }

@@ -15,7 +15,7 @@ struct MenuBarView: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Label(notice.title, systemImage: "bolt.circle.fill")
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(FOHTheme.signal)
                     Text(notice.detail)
                         .font(.caption2)
                         .foregroundStyle(.secondary)
@@ -35,6 +35,7 @@ struct MenuBarView: View {
             footer
         }
         .frame(width: 360)
+        .background(FOHTheme.canvas)
         .alert("FOH couldn’t update audio", isPresented: errorBinding) {
             Button("OK", role: .cancel) { appState.errorMessage = nil }
         } message: {
@@ -102,9 +103,9 @@ struct MenuBarView: View {
 
     private func deviceSection(title: String, devices: [AudioDevice]) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(title.uppercased())
-                .font(.caption2.weight(.semibold))
-                .foregroundStyle(.secondary)
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(FOHTheme.muted)
 
             if devices.isEmpty {
                 Text("No devices available")
