@@ -2,18 +2,31 @@ import SwiftUI
 
 struct StageView: View {
     @EnvironmentObject private var appState: AppState
+    @State private var selection: AppSection = .stage
 
     var body: some View {
         NavigationSplitView {
-            List {
-                Label("Stage", systemImage: "slider.horizontal.3")
-                Label("Devices", systemImage: "hifispeaker.2")
-                Label("Scenes", systemImage: "rectangle.stack")
-                Label("Automations", systemImage: "bolt")
-                Label("History", systemImage: "clock.arrow.circlepath")
+            List(selection: $selection) {
+                ForEach(AppSection.allCases) { section in
+                    Label(section.title, systemImage: section.systemImage)
+                        .tag(section)
+                }
             }
             .navigationSplitViewColumnWidth(min: 180, ideal: 210)
         } detail: {
+            switch selection {
+            case .stage, .devices:
+                stageContent
+            case .diagnostics, .history:
+                DiagnosticsView()
+                    .environmentObject(appState)
+            case .scenes, .automations:
+                comingSoon(selection.title, icon: selection.systemImage)
+            }
+        }
+    }
+
+    private var stageContent: some View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 28) {
                     VStack(alignment: .leading, spacing: 6) {
@@ -49,7 +62,14 @@ struct StageView: View {
                     Label("Refresh", systemImage: "arrow.clockwise")
                 }
             }
-        }
+    }
+
+    private func comingSoon(_ title: String, icon: String) -> some View {
+        ContentUnavailableView(
+            title,
+            systemImage: icon,
+            description: Text("This workspace will arrive after hardware behavior is verified.")
+        )
     }
 
     private func activeCard(title: String, device: AudioDevice?, icon: String) -> some View {
@@ -92,3 +112,35 @@ struct StageView: View {
     }
 }
 
+private enum AppSection: String, CaseIterable, Identifiable {
+    case stage
+    case devices
+    case scenes
+    case automations
+    case history
+    case diagnostics
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .stage: "Stage"
+        case .devices: "Devices"
+        case .scenes: "Scenes"
+        case .automations: "Automations"
+        case .history: "History"
+        case .diagnostics: "Diagnostics"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .stage: "slider.horizontal.3"
+        case .devices: "hifispeaker.2"
+        case .scenes: "rectangle.stack"
+        case .automations: "bolt"
+        case .history: "clock.arrow.circlepath"
+        case .diagnostics: "stethoscope"
+        }
+    }
+}

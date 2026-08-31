@@ -116,6 +116,27 @@ final class AudioHardwareService: @unchecked Sendable {
             scope: kAudioObjectPropertyScopeGlobal
         )) ?? 0
 
+        let manufacturer = try? stringProperty(
+            objectID: objectID,
+            selector: kAudioObjectPropertyManufacturer,
+            scope: kAudioObjectPropertyScopeGlobal
+        )
+        let sampleRate: Float64? = try? scalarProperty(
+            objectID: objectID,
+            selector: kAudioDevicePropertyNominalSampleRate,
+            scope: kAudioObjectPropertyScopeGlobal
+        )
+        let isAlive = (try? booleanProperty(
+            objectID: objectID,
+            selector: kAudioDevicePropertyDeviceIsAlive,
+            scope: kAudioObjectPropertyScopeGlobal
+        )) ?? true
+        let isRunning = (try? booleanProperty(
+            objectID: objectID,
+            selector: kAudioDevicePropertyDeviceIsRunningSomewhere,
+            scope: kAudioObjectPropertyScopeGlobal
+        )) ?? false
+
         let volumeSelector = kAudioDevicePropertyVolumeScalar
         let muteSelector = kAudioDevicePropertyMute
         let canSetVolume = isSettable(objectID: objectID, selector: volumeSelector, scope: scope)
@@ -135,8 +156,13 @@ final class AudioHardwareService: @unchecked Sendable {
             objectID: objectID,
             uid: uid,
             name: name,
+            manufacturer: manufacturer,
             direction: direction,
             transport: AudioTransport(coreAudioValue: transportValue),
+            channelCount: channelCount(objectID: objectID, scope: scope),
+            nominalSampleRate: sampleRate,
+            isAlive: isAlive,
+            isRunning: isRunning,
             canSetVolume: canSetVolume,
             canSetMute: canSetMute,
             canSetGain: direction == .input && canSetVolume,
@@ -152,6 +178,27 @@ final class AudioHardwareService: @unchecked Sendable {
         return status == noErr && dataSize >= UInt32(MemoryLayout<AudioStreamID>.size)
     }
 
+    private func channelCount(objectID: AudioObjectID, scope: AudioObjectPropertyScope) -> Int {
+        var propertyAddress = address(selector: kAudioDevicePropertyStreamConfiguration, scope: scope)
+        var dataSize: UInt32 = 0
+        guard AudioObjectGetPropertyDataSize(objectID, &propertyAddress, 0, nil, &dataSize) == noErr,
+              dataSize >= UInt32(MemoryLayout<AudioBufferList>.size) else { return 0 }
+
+        let pointer = UnsafeMutableRawPointer.allocate(
+            byteCount: Int(dataSize),
+            alignment: MemoryLayout<AudioBufferList>.alignment
+        )
+        defer { pointer.deallocate() }
+
+        guard AudioObjectGetPropertyData(objectID, &propertyAddress, 0, nil, &dataSize, pointer) == noErr else {
+            return 0
+        }
+        let bufferList = pointer.assumingMemoryBound(to: AudioBufferList.self)
+        return UnsafeMutableAudioBufferListPointer(bufferList).reduce(0) { partial, buffer in
+            partial + Int(buffer.mNumberChannels)
+        }
+    }
+
     private func scope(for direction: AudioDirection) -> AudioObjectPropertyScope {
         direction == .input ? kAudioDevicePropertyScopeInput : kAudioDevicePropertyScopeOutput
     }
@@ -162,6 +209,7 @@ final class AudioHardwareService: @unchecked Sendable {
         scope: AudioObjectPropertyScope
     ) -> Bool {
         var propertyAddress = address(selector: selector, scope: scope)
+        guard AudioObjectHasProperty(objectID, &propertyAddress) else { return false }
         var settable: DarwinBoolean = false
         let status = AudioObjectIsPropertySettable(objectID, &propertyAddress, &settable)
         return status == noErr && settable.boolValue
@@ -173,6 +221,9 @@ final class AudioHardwareService: @unchecked Sendable {
         scope: AudioObjectPropertyScope
     ) throws -> String {
         var propertyAddress = address(selector: selector, scope: scope)
+        guard AudioObjectHasProperty(objectID, &propertyAddress) else {
+            throw CoreAudioError(operation: "Read string property", status: kAudioHardwareUnknownPropertyError)
+        }
         var value: Unmanaged<CFString>?
         var dataSize = UInt32(MemoryLayout<Unmanaged<CFString>?>.size)
         let status = AudioObjectGetPropertyData(objectID, &propertyAddress, 0, nil, &dataSize, &value)
@@ -191,6 +242,9 @@ final class AudioHardwareService: @unchecked Sendable {
         scope: AudioObjectPropertyScope
     ) throws -> T {
         var propertyAddress = address(selector: selector, scope: scope)
+        guard AudioObjectHasProperty(objectID, &propertyAddress) else {
+            throw CoreAudioError(operation: "Read scalar property", status: kAudioHardwareUnknownPropertyError)
+        }
         var dataSize = UInt32(MemoryLayout<T>.size)
         let pointer = UnsafeMutablePointer<T>.allocate(capacity: 1)
         defer { pointer.deallocate() }
@@ -199,6 +253,30 @@ final class AudioHardwareService: @unchecked Sendable {
             throw CoreAudioError(operation: "Read scalar property", status: status)
         }
         return pointer.move()
+    }
+
+    private func booleanProperty(
+        objectID: AudioObjectID,
+        selector: AudioObjectPropertySelector,
+        scope: AudioObjectPropertyScope
+    ) throws -> Bool {
+        var propertyAddress = address(selector: selector, scope: scope)
+        guard AudioObjectHasProperty(objectID, &propertyAddress) else {
+            throw CoreAudioError(operation: "Read Boolean property", status: kAudioHardwareUnknownPropertyError)
+        }
+        var dataSize: UInt32 = 0
+        var status = AudioObjectGetPropertyDataSize(objectID, &propertyAddress, 0, nil, &dataSize)
+        guard status == noErr, dataSize > 0 else {
+            throw CoreAudioError(operation: "Read Boolean property size", status: status)
+        }
+        let pointer = UnsafeMutableRawPointer.allocate(byteCount: Int(dataSize), alignment: 4)
+        defer { pointer.deallocate() }
+        pointer.initializeMemory(as: UInt8.self, repeating: 0, count: Int(dataSize))
+        status = AudioObjectGetPropertyData(objectID, &propertyAddress, 0, nil, &dataSize, pointer)
+        guard status == noErr else {
+            throw CoreAudioError(operation: "Read Boolean property", status: status)
+        }
+        return pointer.load(as: UInt8.self) != 0
     }
 
     private func arrayProperty<T: BitwiseCopyable>(

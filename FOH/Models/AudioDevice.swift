@@ -24,8 +24,13 @@ struct AudioDevice: Identifiable, Hashable, Sendable {
     let objectID: AudioObjectID
     let uid: String
     let name: String
+    let manufacturer: String?
     let direction: AudioDirection
     let transport: AudioTransport
+    let channelCount: Int
+    let nominalSampleRate: Double?
+    let isAlive: Bool
+    let isRunning: Bool
     let canSetVolume: Bool
     let canSetMute: Bool
     let canSetGain: Bool
@@ -59,4 +64,3 @@ enum AudioTransport: String, Codable, Sendable {
         }
     }
 }
-
