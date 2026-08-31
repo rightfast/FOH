@@ -3,10 +3,16 @@ import SwiftUI
 struct MenuBarView: View {
     @Environment(\.openWindow) private var openWindow
     @EnvironmentObject private var appState: AppState
+    @EnvironmentObject private var microphoneMonitor: MicrophoneMonitor
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             header
+            Divider()
+            InputActivityView(compact: true)
+                .environmentObject(appState)
+                .environmentObject(microphoneMonitor)
+                .padding(14)
             Divider()
             deviceSection(title: "Microphone", devices: appState.inputDevices)
             Divider()
@@ -83,4 +89,3 @@ struct MenuBarView: View {
         )
     }
 }
-

@@ -7,7 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0F12545198F88566437DED39 /* MicrophoneMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBC67EEC399C606B2B2F989B /* MicrophoneMonitor.swift */; };
 		0F518E228CF9ED94656C4C7C /* AudioTransportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87A155E8C5FAC862E0AE7D43 /* AudioTransportTests.swift */; };
+		109C921FABBAEB72604EE0A7 /* MicrophoneMonitorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B2C82557CEA1DA82F04B651 /* MicrophoneMonitorTests.swift */; };
 		1DC35C0E716A0A85E6E89A0C /* DeviceRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF5A485CBDF61184AC74DBBB /* DeviceRow.swift */; };
 		1E81AA8782C916243EE4EADD /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A91CACA95B8289830372CDC4 /* MenuBarView.swift */; };
 		3B9B62454E9D44C9537DCCCC /* StageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1014DB4BCFCE4D85103AA58 /* StageView.swift */; };
@@ -21,6 +23,7 @@
 		CE8D942C3ED95059456F3D65 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F53DD5CBDB54056E65C49E3 /* SettingsView.swift */; };
 		D0AB321EBF0FC974624B4744 /* AudioHardwareService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A36E42E11D1F4C193CFD9476 /* AudioHardwareService.swift */; };
 		E1C9C2FEEB9AE946741E7E38 /* DiagnosticReportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D25E623A9EDA7ECC1206327 /* DiagnosticReportTests.swift */; };
+		F4D335187EA7BD36080A3415 /* InputActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DEE6EA26F3B8FAF87110910 /* InputActivityView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -34,6 +37,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0DEE6EA26F3B8FAF87110910 /* InputActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputActivityView.swift; sourceTree = "<group>"; };
 		14AE62CA8DA75D4B1343890B /* AudioDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDevice.swift; sourceTree = "<group>"; };
 		271B4476B0938180874E699E /* DiagnosticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsView.swift; sourceTree = "<group>"; };
 		2ABC2676156E7FDD3C81EA09 /* FOH.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FOH.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -41,6 +45,7 @@
 		48831CE27FFF67B714C2F8A5 /* FOHTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FOHTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		572BAF538B47705B9863275D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		87A155E8C5FAC862E0AE7D43 /* AudioTransportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioTransportTests.swift; sourceTree = "<group>"; };
+		8B2C82557CEA1DA82F04B651 /* MicrophoneMonitorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicrophoneMonitorTests.swift; sourceTree = "<group>"; };
 		8D25E623A9EDA7ECC1206327 /* DiagnosticReportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticReportTests.swift; sourceTree = "<group>"; };
 		8F53DD5CBDB54056E65C49E3 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A36E42E11D1F4C193CFD9476 /* AudioHardwareService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioHardwareService.swift; sourceTree = "<group>"; };
@@ -51,6 +56,7 @@
 		E8FEA8F40FE8EC36E2E804D7 /* FOHApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FOHApp.swift; sourceTree = "<group>"; };
 		EF5A485CBDF61184AC74DBBB /* DeviceRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceRow.swift; sourceTree = "<group>"; };
 		F1014DB4BCFCE4D85103AA58 /* StageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageView.swift; sourceTree = "<group>"; };
+		FBC67EEC399C606B2B2F989B /* MicrophoneMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicrophoneMonitor.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -59,6 +65,7 @@
 			children = (
 				A36E42E11D1F4C193CFD9476 /* AudioHardwareService.swift */,
 				D98A5C1E1F878AE9143DF30E /* CoreAudioError.swift */,
+				FBC67EEC399C606B2B2F989B /* MicrophoneMonitor.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -68,6 +75,7 @@
 			children = (
 				87A155E8C5FAC862E0AE7D43 /* AudioTransportTests.swift */,
 				8D25E623A9EDA7ECC1206327 /* DiagnosticReportTests.swift */,
+				8B2C82557CEA1DA82F04B651 /* MicrophoneMonitorTests.swift */,
 			);
 			path = FOHTests;
 			sourceTree = "<group>";
@@ -94,6 +102,7 @@
 			children = (
 				EF5A485CBDF61184AC74DBBB /* DeviceRow.swift */,
 				271B4476B0938180874E699E /* DiagnosticsView.swift */,
+				0DEE6EA26F3B8FAF87110910 /* InputActivityView.swift */,
 				A91CACA95B8289830372CDC4 /* MenuBarView.swift */,
 				8F53DD5CBDB54056E65C49E3 /* SettingsView.swift */,
 				F1014DB4BCFCE4D85103AA58 /* StageView.swift */,
@@ -227,6 +236,7 @@
 			files = (
 				0F518E228CF9ED94656C4C7C /* AudioTransportTests.swift in Sources */,
 				E1C9C2FEEB9AE946741E7E38 /* DiagnosticReportTests.swift in Sources */,
+				109C921FABBAEB72604EE0A7 /* MicrophoneMonitorTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -242,7 +252,9 @@
 				5F1E9367D56E806E616DC406 /* DiagnosticReport.swift in Sources */,
 				A94502EF1636806D9242C51D /* DiagnosticsView.swift in Sources */,
 				43C0F948033485A25E81917F /* FOHApp.swift in Sources */,
+				F4D335187EA7BD36080A3415 /* InputActivityView.swift in Sources */,
 				1E81AA8782C916243EE4EADD /* MenuBarView.swift in Sources */,
+				0F12545198F88566437DED39 /* MicrophoneMonitor.swift in Sources */,
 				CE8D942C3ED95059456F3D65 /* SettingsView.swift in Sources */,
 				3B9B62454E9D44C9537DCCCC /* StageView.swift in Sources */,
 			);
@@ -398,6 +410,7 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 Right Fast Studio";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "FOH uses your selected microphone only to display live input activity. Audio is analyzed locally and never saved or transmitted.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -420,6 +433,7 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 Right Fast Studio";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "FOH uses your selected microphone only to display live input activity. Audio is analyzed locally and never saved or transmitted.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",

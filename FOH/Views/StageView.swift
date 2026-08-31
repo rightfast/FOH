@@ -2,6 +2,7 @@ import SwiftUI
 
 struct StageView: View {
     @EnvironmentObject private var appState: AppState
+    @EnvironmentObject private var microphoneMonitor: MicrophoneMonitor
     @State private var selection: AppSection = .stage
 
     var body: some View {
@@ -37,11 +38,7 @@ struct StageView: View {
                     }
 
                     HStack(alignment: .top, spacing: 18) {
-                        activeCard(
-                            title: "Microphone",
-                            device: appState.defaultInput,
-                            icon: "mic.fill"
-                        )
+                        microphoneCard
                         activeCard(
                             title: "Listening",
                             device: appState.defaultOutput,
@@ -64,6 +61,25 @@ struct StageView: View {
             }
     }
 
+    private var microphoneCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label("Microphone", systemImage: "mic.fill")
+                .font(.headline)
+                .foregroundStyle(.secondary)
+            Text(appState.defaultInput?.name ?? "No device")
+                .font(.title2.weight(.semibold))
+            Text(appState.defaultInput?.transport.rawValue ?? "Not connected")
+                .foregroundStyle(.secondary)
+            Divider()
+            InputActivityView()
+                .environmentObject(appState)
+                .environmentObject(microphoneMonitor)
+        }
+        .padding(22)
+        .frame(maxWidth: .infinity, minHeight: 230, alignment: .leading)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+    }
+
     private func comingSoon(_ title: String, icon: String) -> some View {
         ContentUnavailableView(
             title,
@@ -84,7 +100,7 @@ struct StageView: View {
                 .foregroundStyle(.secondary)
         }
         .padding(22)
-        .frame(maxWidth: .infinity, minHeight: 160, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 230, alignment: .leading)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 

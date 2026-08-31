@@ -49,3 +49,11 @@ Core Audio object IDs, and event messages.
 - FOH recorded one selection and one observed-default-change event in each
   direction, with no duplicate or error events.
 - The input endpoint remained unchanged throughout the output round trip.
+
+## Deferred device validation
+
+USB microphones, XLR interfaces, and Bluetooth/AirPods call-profile behavior
+will be tested on the second Mac once FOH has a signed, one-step install build.
+Until then, live input activity is intentionally opt-in and only runs while an
+FOH window or menu is visible, so opening FOH cannot silently hold a Bluetooth
+microphone stream in the background.

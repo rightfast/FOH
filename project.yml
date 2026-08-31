@@ -26,6 +26,7 @@ targets:
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
         INFOPLIST_KEY_LSUIElement: YES
         INFOPLIST_KEY_NSHumanReadableCopyright: "Copyright © 2026 Right Fast Studio"
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: "FOH uses your selected microphone only to display live input activity. Audio is analyzed locally and never saved or transmitted."
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ENABLE_APP_SANDBOX: YES
         ENABLE_HARDENED_RUNTIME: YES
