@@ -14,6 +14,7 @@
 		43C0F948033485A25E81917F /* FOHApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8FEA8F40FE8EC36E2E804D7 /* FOHApp.swift */; };
 		65A8647F953A5305F32A5BBF /* CoreAudioError.swift in Sources */ = {isa = PBXBuildFile; fileRef = D98A5C1E1F878AE9143DF30E /* CoreAudioError.swift */; };
 		9732B9C3AC1B6BFC3416F277 /* AudioDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14AE62CA8DA75D4B1343890B /* AudioDevice.swift */; };
+		A65510FB6B4D0C512131093F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 572BAF538B47705B9863275D /* Assets.xcassets */; };
 		CA2A26F11C3B2576C16929B0 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 414DF5D2DE57365869B037C2 /* AppState.swift */; };
 		CE8D942C3ED95059456F3D65 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F53DD5CBDB54056E65C49E3 /* SettingsView.swift */; };
 		D0AB321EBF0FC974624B4744 /* AudioHardwareService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A36E42E11D1F4C193CFD9476 /* AudioHardwareService.swift */; };
@@ -34,6 +35,7 @@
 		2ABC2676156E7FDD3C81EA09 /* FOH.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FOH.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		414DF5D2DE57365869B037C2 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		48831CE27FFF67B714C2F8A5 /* FOHTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FOHTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		572BAF538B47705B9863275D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		87A155E8C5FAC862E0AE7D43 /* AudioTransportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioTransportTests.swift; sourceTree = "<group>"; };
 		8F53DD5CBDB54056E65C49E3 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A36E42E11D1F4C193CFD9476 /* AudioHardwareService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioHardwareService.swift; sourceTree = "<group>"; };
@@ -111,6 +113,7 @@
 		E2D4017748F7946A356DA0C2 /* FOH */ = {
 			isa = PBXGroup;
 			children = (
+				572BAF538B47705B9863275D /* Assets.xcassets */,
 				C4B4D67479272D1F223A3E02 /* FOH.entitlements */,
 				E8FEA8F40FE8EC36E2E804D7 /* FOHApp.swift */,
 				4FAC4911C8DF8C8B8C9A7CBC /* App */,
@@ -129,6 +132,7 @@
 			buildConfigurationList = F4F8F9B100B82CF25ED051F0 /* Build configuration list for PBXNativeTarget "FOH" */;
 			buildPhases = (
 				A0EFD42A5730200E284DADC0 /* Sources */,
+				7A9E8EA73576CB21EF232D3D /* Resources */,
 			);
 			buildRules = (
 			);
@@ -195,6 +199,17 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		7A9E8EA73576CB21EF232D3D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A65510FB6B4D0C512131093F /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		5C6F8CBE734EC4BB585065B7 /* Sources */ = {

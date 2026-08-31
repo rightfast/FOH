@@ -26,6 +26,7 @@ targets:
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
         INFOPLIST_KEY_LSUIElement: YES
         INFOPLIST_KEY_NSHumanReadableCopyright: "Copyright © 2026 Right Fast Studio"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ENABLE_APP_SANDBOX: YES
         ENABLE_HARDENED_RUNTIME: YES
         CODE_SIGN_ENTITLEMENTS: FOH/FOH.entitlements
@@ -43,4 +44,3 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: studio.rightfast.foh.tests
         GENERATE_INFOPLIST_FILE: YES
-
